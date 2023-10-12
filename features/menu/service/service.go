@@ -4,6 +4,7 @@ import (
 	"errors"
 	"restoran/features/menu/model"
 	"restoran/features/menu/repository"
+	"restoran/helper"
 )
 
 type MenuServiceInterface interface {
@@ -25,11 +26,7 @@ func NewMenuService(repo repository.MenuRepositoryInterface) MenuServiceInterfac
 }
 
 func (service *menuService) Insert(newData model.MenuInput) (*model.Menu, error) {
-	var newUser = new(model.Menu)
-	newUser.Name = newData.Name
-	newUser.Category = newData.Category
-	newUser.Price = int(newData.Price)
-	newUser.Description = newData.Description
+	var newUser = helper.ToMenu(newData)
 
 	result, err := service.repository.Insert(newUser)
 	if err != nil {
@@ -58,11 +55,7 @@ func (service *menuService) GetCategory(category string) ([]model.Menu, error) {
 }
 
 func (service *menuService) Update(id int, updateData model.MenuInput) (*model.Menu, error) {
-	var newUser = new(model.Menu)
-	newUser.Name = updateData.Name
-	newUser.Category = updateData.Category
-	newUser.Price = updateData.Price
-	newUser.Description = updateData.Description
+	var newUser = helper.ToMenu(updateData)
 
 	result, err := service.repository.Update(id, newUser)
 	if err != nil {

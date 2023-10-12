@@ -59,7 +59,12 @@ func (repository *menuRepo) Update(id int, updateData *model.Menu) (*model.Menu,
 		return nil, result.Error
 	}
 
-	return updateData, nil
+	var updatedUser = new(model.Menu)
+	if err := repository.db.Where("id = ?", id).First(updatedUser).Error; err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
 }
 
 func (repository *menuRepo) Delete(id int) error {
