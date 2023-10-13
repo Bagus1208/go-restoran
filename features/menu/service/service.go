@@ -2,16 +2,17 @@ package service
 
 import (
 	"errors"
+	"mime/multipart"
 	"restoran/features/menu/model"
 	"restoran/features/menu/repository"
 	"restoran/helper"
 )
 
 type MenuServiceInterface interface {
-	Insert(newData model.MenuInput) (*model.Menu, error)
+	Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.Menu, error)
 	GetAll() ([]model.Menu, error)
 	GetCategory(category string) ([]model.Menu, error)
-	Update(id int, updateData model.MenuInput) (*model.Menu, error)
+	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.Menu, error)
 	Delete(id int) error
 }
 
@@ -25,7 +26,13 @@ func NewMenuService(repo repository.MenuRepositoryInterface) MenuServiceInterfac
 	}
 }
 
-func (service *menuService) Insert(newData model.MenuInput) (*model.Menu, error) {
+func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.Menu, error) {
+	urlImage, err := helper.UploadImageToCDN(fileHeader, newData.Name)
+	if err != nil {
+		return nil, errors.New("unprocessable image")
+	}
+	newData.Image = urlImage
+
 	var newUser = helper.ToMenu(newData)
 
 	result, err := service.repository.Insert(newUser)
@@ -54,7 +61,13 @@ func (service *menuService) GetCategory(category string) ([]model.Menu, error) {
 	return result, nil
 }
 
-func (service *menuService) Update(id int, updateData model.MenuInput) (*model.Menu, error) {
+func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.Menu, error) {
+	urlImage, err := helper.UploadImageToCDN(fileHeader, updateData.Name)
+	if err != nil {
+		return nil, errors.New("unprocessable image")
+	}
+	updateData.Image = urlImage
+
 	var newUser = helper.ToMenu(updateData)
 
 	result, err := service.repository.Update(id, newUser)

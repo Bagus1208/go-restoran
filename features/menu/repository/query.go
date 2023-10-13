@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"restoran/config"
 	"restoran/features/menu/model"
 
 	"gorm.io/gorm"
@@ -15,7 +16,8 @@ type MenuRepositoryInterface interface {
 }
 
 type menuRepo struct {
-	db *gorm.DB
+	db     *gorm.DB
+	config config.Config
 }
 
 func NewMenuRepo(db *gorm.DB) MenuRepositoryInterface {

@@ -8,5 +8,6 @@ func ToMenu(data model.MenuInput) *model.Menu {
 		Category:    data.Category,
 		Price:       data.Price,
 		Description: data.Description,
+		Image:       data.Image,
 	}
 }
