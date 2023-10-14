@@ -1,6 +1,8 @@
 package helper
 
-import "restoran/features/menu/model"
+import (
+	"restoran/features/menu/model"
+)
 
 func RequestToMenu(data model.MenuInput) *model.Menu {
 	return &model.Menu{
