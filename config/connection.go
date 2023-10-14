@@ -8,13 +8,17 @@ import (
 )
 
 type Config struct {
-	Server_Port string
-	DB_Username string
-	DB_Password string
-	DB_Port     string
-	DB_Host     string
-	DB_Name     string
-	Secret      string
+	Server_Port     string
+	DB_Username     string
+	DB_Password     string
+	DB_Port         string
+	DB_Host         string
+	DB_Name         string
+	Secret          string
+	CDN_Cloud_Name  string
+	CDN_API_Key     string
+	CDN_API_Secret  string
+	CDN_Folder_Name string
 }
 
 func InitConfig() *Config {
@@ -58,6 +62,18 @@ func loadConfig() *Config {
 	}
 	if value, found := os.LookupEnv("SECRET"); found {
 		result.Secret = value
+	}
+	if value, found := os.LookupEnv("CLOUDINARY_CLOUD_NAME"); found {
+		result.CDN_Cloud_Name = value
+	}
+	if value, found := os.LookupEnv("CLOUDINARY_API_KEY"); found {
+		result.CDN_API_Key = value
+	}
+	if value, found := os.LookupEnv("CLOUDINARY_API_SECRET"); found {
+		result.CDN_API_Secret = value
+	}
+	if value, found := os.LookupEnv("CLOUDINARY_UPLOAD_FOLDER_NAME"); found {
+		result.CDN_Folder_Name = value
 	}
 
 	return result

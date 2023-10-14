@@ -7,6 +7,7 @@ import (
 	"restoran/features/menu/repository"
 	"restoran/features/menu/service"
 	"restoran/routes"
+	"restoran/utils"
 	"restoran/utils/database"
 
 	"github.com/labstack/echo/v4"
@@ -19,7 +20,9 @@ func main() {
 	var db = database.InitDB(*config)
 	database.Migrate(db)
 
-	var menuModel = repository.NewMenuRepo(db)
+	var cdn = utils.CloudinaryInstance(*config)
+
+	var menuModel = repository.NewMenuRepo(db, cdn)
 	var menuService = service.NewMenuService(menuModel)
 	var menuHandler = handler.NewMenuHandler(menuService)
 

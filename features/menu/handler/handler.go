@@ -31,12 +31,17 @@ func NewMenuHandler(service service.MenuServiceInterface) MenuHandlerInterface {
 
 func (mh *menuHandler) Insert() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		fileHeader, err := c.FormFile("image")
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("unprocessable content -", err.Error()))
+		}
+
 		var menuInsert model.MenuInput
 		if err := c.Bind(&menuInsert); err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse(fmt.Sprint("error when parshing data -", err.Error()), nil))
 		}
 
-		result, err := mh.service.Insert(menuInsert)
+		result, err := mh.service.Insert(fileHeader, menuInsert)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when inserting data -", err.Error()), nil))
 		}
@@ -79,12 +84,17 @@ func (mh *menuHandler) Update() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("id is required", nil))
 		}
 
+		fileHeader, err := c.FormFile("image")
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("unprocessable content -", err.Error()))
+		}
+
 		var menuUpdate model.MenuInput
 		if err := c.Bind(&menuUpdate); err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse(fmt.Sprint("error when parshing data -", err.Error()), nil))
 		}
 
-		result, err := mh.service.Update(id, menuUpdate)
+		result, err := mh.service.Update(id, fileHeader, menuUpdate)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when updating data -", err.Error()), nil))
 		}
