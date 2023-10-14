@@ -1,15 +1,15 @@
 package repository
 
 import (
-	"restoran/features/admin"
+	"restoran/features/admin/model"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type AdminRepositoryInterface interface {
-	Insert(newData *admin.Admin) (*admin.Admin, error)
-	Login(email string, password string) (*admin.Admin, error)
+	Insert(newData *model.Admin) (*model.Admin, error)
+	Login(email string, password string) (*model.Admin, error)
 }
 
 type adminRepo struct {
@@ -22,7 +22,7 @@ func NewAdminRepo(DB *gorm.DB) AdminRepositoryInterface {
 	}
 }
 
-func (repository *adminRepo) Insert(newData *admin.Admin) (*admin.Admin, error) {
+func (repository *adminRepo) Insert(newData *model.Admin) (*model.Admin, error) {
 	result := repository.db.Create(newData)
 	if result.Error != nil {
 		logrus.Error("Repository: Inserting data error,", result.Error)
@@ -32,8 +32,8 @@ func (repository *adminRepo) Insert(newData *admin.Admin) (*admin.Admin, error) 
 	return newData, nil
 }
 
-func (repository *adminRepo) Login(email string, password string) (*admin.Admin, error) {
-	var admin = new(admin.Admin)
+func (repository *adminRepo) Login(email string, password string) (*model.Admin, error) {
+	var admin = new(model.Admin)
 	result := repository.db.Where("email =? and password =?", email, password).First(admin)
 	if result.Error != nil {
 		logrus.Error("Repository: Login error,", result.Error)

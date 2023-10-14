@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"restoran/features/admin"
 	"restoran/features/admin/model"
 	"restoran/features/admin/repository"
 	"restoran/helper"
@@ -12,8 +11,8 @@ import (
 )
 
 type AdminServiceInterface interface {
-	Insert(newData model.AdminInput) (*admin.Admin, error)
-	Login(email string, password string) (*admin.UserCredential, error)
+	Insert(newData model.AdminInput) (*model.Admin, error)
+	Login(email string, password string) (*model.UserCredential, error)
 }
 
 type adminService struct {
@@ -30,8 +29,16 @@ func NewAdminService(repo repository.AdminRepositoryInterface, generate helper.G
 	}
 }
 
-func (service *adminService) Insert(newData model.AdminInput) (*admin.Admin, error) {
+func (service *adminService) Insert(newData model.AdminInput) (*model.Admin, error) {
 	var newUser = helper.RequestToAdmin(newData)
+
+	newID, err := service.generator.GenerateUUID()
+	if err != nil {
+		logrus.Error("Service: Generating ID failed")
+		return nil, errors.New("Cannot generating ID " + err.Error())
+	}
+
+	newUser.ID = newID
 	result, err := service.repository.Insert(newUser)
 	if err != nil {
 		logrus.Error("Service: Insert data failed,", err)
@@ -41,7 +48,7 @@ func (service *adminService) Insert(newData model.AdminInput) (*admin.Admin, err
 	return result, nil
 }
 
-func (service *adminService) Login(email string, password string) (*admin.UserCredential, error) {
+func (service *adminService) Login(email string, password string) (*model.UserCredential, error) {
 	result, err := service.repository.Login(email, password)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
@@ -55,7 +62,7 @@ func (service *adminService) Login(email string, password string) (*admin.UserCr
 		return nil, errors.New("get token process failed")
 	}
 
-	var response = new(admin.UserCredential)
+	var response = new(model.UserCredential)
 	response.Name = result.Name
 	response.Access = token
 

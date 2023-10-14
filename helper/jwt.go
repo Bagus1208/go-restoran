@@ -14,7 +14,7 @@ type JWT struct {
 	signKey string
 }
 
-func New(signKey string) JWTInterface {
+func NewJWT(signKey string) JWTInterface {
 	return &JWT{
 		signKey: signKey,
 	}

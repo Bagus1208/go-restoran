@@ -57,6 +57,6 @@ func (handler *adminHandler) Login() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when inserting data -", err.Error()), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully inserted data", result))
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully login", result))
 	}
 }

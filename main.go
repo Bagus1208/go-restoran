@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"restoran/config"
-	"restoran/features/menu/handler"
-	"restoran/features/menu/repository"
-	"restoran/features/menu/service"
+	"restoran/features/admin"
+	"restoran/features/menu"
+	"restoran/helper"
 	"restoran/routes"
 	"restoran/utils"
 	"restoran/utils/database"
@@ -22,11 +22,13 @@ func main() {
 
 	var cdn = utils.CloudinaryInstance(*config)
 
-	var menuModel = repository.NewMenuRepo(db, cdn)
-	var menuService = service.NewMenuService(menuModel)
-	var menuHandler = handler.NewMenuHandler(menuService)
+	var menuHandler = menu.FeatureMenu(db, cdn)
+	var adminHandler = admin.FeatureAdmin(db, *config)
 
-	routes.RouteMenu(e, menuHandler)
+	helper.LogMiddlewares(e)
+
+	routes.RouteMenu(e, menuHandler, *config)
+	routes.RouteAdmin(e, adminHandler)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Server_Port)).Error())
 }
