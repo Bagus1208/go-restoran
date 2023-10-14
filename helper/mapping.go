@@ -2,7 +2,7 @@ package helper
 
 import "restoran/features/menu/model"
 
-func ToMenu(data model.MenuInput) *model.Menu {
+func RequestToMenu(data model.MenuInput) *model.Menu {
 	return &model.Menu{
 		Name:        data.Name,
 		Category:    data.Category,
