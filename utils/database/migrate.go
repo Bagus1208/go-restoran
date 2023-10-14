@@ -1,11 +1,12 @@
 package database
 
 import (
-	"restoran/features/menu/model"
+	admin "restoran/features/admin/model"
+	menu "restoran/features/menu/model"
 
 	"gorm.io/gorm"
 )
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&model.Menu{})
+	db.AutoMigrate(&menu.Menu{}, &admin.Admin{})
 }
