@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"mime/multipart"
 	"os"
 	"restoran/features/menu/model"
@@ -14,8 +15,9 @@ import (
 
 type MenuRepositoryInterface interface {
 	Insert(newData *model.Menu) (*model.Menu, error)
-	GetAll() ([]model.Menu, error)
-	GetCategory(category string) ([]model.Menu, error)
+	GetAll(pagination model.Pagination) ([]model.Menu, error)
+	GetCategory(category string, pagination model.Pagination) ([]model.Menu, error)
+	GetByName(name string) *model.Menu
 	Update(id int, updateData *model.Menu) (*model.Menu, error)
 	Delete(id int) error
 	UploadImage(ctx context.Context, file multipart.File, name string) (string, error)
@@ -43,9 +45,15 @@ func (repository *menuRepo) Insert(newData *model.Menu) (*model.Menu, error) {
 	return newData, nil
 }
 
-func (repository *menuRepo) GetAll() ([]model.Menu, error) {
+func (repository *menuRepo) GetAll(pagination model.Pagination) ([]model.Menu, error) {
+	if pagination.Page <= 0 || pagination.PageSize <= 0 {
+		return nil, errors.New("invalid page and pageSize value")
+	}
+
 	var menus []model.Menu
-	result := repository.db.Find(&menus)
+	var offset = (pagination.Page - 1) * pagination.PageSize
+
+	result := repository.db.Offset(offset).Limit(pagination.PageSize).Find(&menus)
 	if result.Error != nil {
 		logrus.Error("Repository: Get all data error,", result.Error)
 		return nil, result.Error
@@ -54,15 +62,31 @@ func (repository *menuRepo) GetAll() ([]model.Menu, error) {
 	return menus, nil
 }
 
-func (repository *menuRepo) GetCategory(category string) ([]model.Menu, error) {
+func (repository *menuRepo) GetCategory(category string, pagination model.Pagination) ([]model.Menu, error) {
+	if pagination.Page <= 0 || pagination.PageSize <= 0 {
+		return nil, errors.New("invalid page and pageSize value")
+	}
+
 	var menus []model.Menu
-	result := repository.db.Where("category = ?", category).Find(&menus)
+	var offset = (pagination.Page - 1) * pagination.PageSize
+
+	result := repository.db.Where("category = ?", category).Offset(offset).Limit(pagination.PageSize).Find(&menus)
 	if result.Error != nil {
 		logrus.Error("Repository: Get data by category error", result.Error)
 		return nil, result.Error
 	}
 
 	return menus, nil
+}
+
+func (repository *menuRepo) GetByName(name string) *model.Menu {
+	var menu model.Menu
+	result := repository.db.Where("name =?", name).First(&menu)
+	if result.Error != nil {
+		return nil
+	}
+
+	return &menu
 }
 
 func (repository *menuRepo) Update(id int, updateData *model.Menu) (*model.Menu, error) {

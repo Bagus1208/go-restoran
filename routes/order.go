@@ -15,6 +15,5 @@ func RouteOrder(e *echo.Echo, orderHandler handler.OrderHandlerInterface, config
 	Orders.Use(echojwt.JWT([]byte(config.Secret)))
 	Orders.GET("", orderHandler.GetAll())
 	Orders.GET("/:id", orderHandler.GetByID())
-	Orders.PUT("/:id", orderHandler.Update())
 	Orders.DELETE("/:id", orderHandler.Delete())
 }

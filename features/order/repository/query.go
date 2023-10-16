@@ -11,7 +11,6 @@ type OrderRepositoryInterface interface {
 	Insert(newData *model.Order) (*model.Order, error)
 	GetAll() ([]model.Order, error)
 	GetByID(id int) (*model.Order, error)
-	Update(id int, updateData *model.Order) (*model.Order, error)
 	Delete(id int) error
 	FindMenu(menuNames []string) (bool, []int)
 }
@@ -60,22 +59,6 @@ func (repository *orderRepo) GetByID(id int) (*model.Order, error) {
 	}
 
 	return &order, nil
-}
-
-func (repository *orderRepo) Update(id int, updateData *model.Order) (*model.Order, error) {
-	result := repository.db.Where("id =?", id).Updates(updateData)
-	if result.Error != nil {
-		logrus.Error("Repository: Update order error,", result.Error)
-		return nil, result.Error
-	}
-
-	var updatedOrder = new(model.Order)
-	if err := repository.db.Where("id =?", id).First(updatedOrder).Error; err != nil {
-		logrus.Error("Repository: Get order update error,", result.Error)
-		return nil, err
-	}
-
-	return updatedOrder, nil
 }
 
 func (repository *orderRepo) Delete(id int) error {

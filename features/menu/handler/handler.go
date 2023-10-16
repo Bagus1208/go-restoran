@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"restoran/features/menu/model"
 	"restoran/features/menu/service"
 	"restoran/helper"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -33,28 +33,38 @@ func (handler *menuHandler) Insert() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		fileHeader, err := c.FormFile("image")
 		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("unprocessable content -", err.Error()))
+			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("image not found", nil))
 		}
 
 		var menuInsert model.MenuInput
 		if err := c.Bind(&menuInsert); err != nil {
-			return c.JSON(http.StatusBadRequest, helper.FormatResponse(fmt.Sprint("error when parshing data -", err.Error()), nil))
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
 		result, err := handler.service.Insert(fileHeader, menuInsert)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when inserting data -", err.Error()), nil))
+			if strings.Contains(err.Error(), "validation failed") {
+				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
+			}
+
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusCreated, helper.FormatResponse("successfully inserted data", result))
+		return c.JSON(http.StatusCreated, helper.FormatResponse("successfully insert data", result))
 	}
 }
 
 func (handler *menuHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		result, err := handler.service.GetAll()
+		var pagination model.Pagination
+		if err := c.Bind(&pagination); err != nil || pagination.Page < 1 || pagination.PageSize < 1 {
+			pagination.Page = 1
+			pagination.PageSize = 5
+		}
+
+		result, err := handler.service.GetAll(pagination)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when getting data -", err.Error()), nil))
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
 		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get all menu", result))
@@ -68,9 +78,14 @@ func (handler *menuHandler) GetCategory() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("category is required", nil))
 		}
 
-		result, err := handler.service.GetCategory(category)
+		var pagination model.Pagination
+		if err := c.Bind(&pagination); err != nil {
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
+		}
+
+		result, err := handler.service.GetCategory(category, pagination)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when getting data -", err.Error()), nil))
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
 		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get menu by category", result))
@@ -86,20 +101,24 @@ func (handler *menuHandler) Update() echo.HandlerFunc {
 
 		fileHeader, err := c.FormFile("image")
 		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("unprocessable content -", err.Error()))
+			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("image not found", nil))
 		}
 
 		var menuUpdate model.MenuInput
 		if err := c.Bind(&menuUpdate); err != nil {
-			return c.JSON(http.StatusBadRequest, helper.FormatResponse(fmt.Sprint("error when parshing data -", err.Error()), nil))
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
 		result, err := handler.service.Update(id, fileHeader, menuUpdate)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when updating data -", err.Error()), nil))
+			if strings.Contains(err.Error(), "validation failed") {
+				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
+			}
+
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully updated data", result))
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully update data", result))
 	}
 }
 
@@ -112,9 +131,9 @@ func (handler *menuHandler) Delete() echo.HandlerFunc {
 
 		err = handler.service.Delete(id)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when deleting data -", err.Error()), nil))
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully deleted data", nil))
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully delete data", nil))
 	}
 }
