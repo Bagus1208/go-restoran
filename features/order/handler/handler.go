@@ -3,98 +3,88 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"restoran/features/menu/model"
-	"restoran/features/menu/service"
+	"restoran/features/order/model"
+	"restoran/features/order/service"
 	"restoran/helper"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
-type MenuHandlerInterface interface {
+type OrderHandlerInterface interface {
 	Insert() echo.HandlerFunc
 	GetAll() echo.HandlerFunc
-	GetCategory() echo.HandlerFunc
+	GetByID() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
 }
 
-type menuHandler struct {
-	service service.MenuServiceInterface
+type orderHandler struct {
+	service service.OrderServiceInterface
 }
 
-func NewMenuHandler(service service.MenuServiceInterface) MenuHandlerInterface {
-	return &menuHandler{
+func NewOrderHandler(service service.OrderServiceInterface) OrderHandlerInterface {
+	return &orderHandler{
 		service: service,
 	}
 }
 
-func (handler *menuHandler) Insert() echo.HandlerFunc {
+func (handler *orderHandler) Insert() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fileHeader, err := c.FormFile("image")
-		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("unprocessable content -", err.Error()))
-		}
-
-		var menuInsert model.MenuInput
-		if err := c.Bind(&menuInsert); err != nil {
+		var orderInsert model.OrderInput
+		if err := c.Bind(&orderInsert); err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse(fmt.Sprint("error when parshing data -", err.Error()), nil))
 		}
 
-		result, err := handler.service.Insert(fileHeader, menuInsert)
+		result, err := handler.service.Insert(orderInsert)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when inserting data -", err.Error()), nil))
 		}
 
-		return c.JSON(http.StatusCreated, helper.FormatResponse("successfully inserted data", result))
+		return c.JSON(http.StatusCreated, helper.FormatResponse("successfully make an order", result))
 	}
 }
 
-func (handler *menuHandler) GetAll() echo.HandlerFunc {
+func (handler *orderHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		result, err := handler.service.GetAll()
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when getting data -", err.Error()), nil))
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when getting all data -", err.Error()), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get all menu", result))
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get all orders", result))
 	}
 }
 
-func (handler *menuHandler) GetCategory() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		category := c.Param("category")
-		if category == "" {
-			return c.JSON(http.StatusBadRequest, helper.FormatResponse("category is required", nil))
-		}
-
-		result, err := handler.service.GetCategory(category)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when getting data -", err.Error()), nil))
-		}
-
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get menu by category", result))
-	}
-}
-
-func (handler *menuHandler) Update() echo.HandlerFunc {
+func (handler *orderHandler) GetByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("id is required", nil))
 		}
 
-		fileHeader, err := c.FormFile("image")
+		result, err := handler.service.GetByID(id)
 		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, helper.FormatResponse("unprocessable content -", err.Error()))
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when getting data -", err.Error()), nil))
 		}
 
-		var menuUpdate model.MenuInput
-		if err := c.Bind(&menuUpdate); err != nil {
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get order by id", result))
+	}
+}
+
+func (handler *orderHandler) Update() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("id is required", nil))
+		}
+
+		var orderUpdate model.OrderInput
+		if err := c.Bind(&orderUpdate); err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse(fmt.Sprint("error when parshing data -", err.Error()), nil))
 		}
 
-		result, err := handler.service.Update(id, fileHeader, menuUpdate)
+		result, err := handler.service.Update(id, orderUpdate)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(fmt.Sprint("error when updating data -", err.Error()), nil))
 		}
@@ -103,7 +93,7 @@ func (handler *menuHandler) Update() echo.HandlerFunc {
 	}
 }
 
-func (handler *menuHandler) Delete() echo.HandlerFunc {
+func (handler *orderHandler) Delete() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"restoran/config"
 	"restoran/features/admin"
 	"restoran/features/menu"
+	"restoran/features/order"
 	"restoran/helper"
 	"restoran/routes"
 	"restoran/utils"
@@ -24,11 +25,13 @@ func main() {
 
 	var menuHandler = menu.FeatureMenu(db, cdn)
 	var adminHandler = admin.FeatureAdmin(db, *config)
+	var orderHandler = order.FeatureOrder(db)
 
 	helper.LogMiddlewares(e)
 
 	routes.RouteMenu(e, menuHandler, *config)
 	routes.RouteAdmin(e, adminHandler)
+	routes.RouteOrder(e, orderHandler, *config)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Server_Port)).Error())
 }

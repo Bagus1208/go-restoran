@@ -48,8 +48,8 @@ func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData mod
 
 	newData.Image = urlImage
 
-	var newUser = helper.RequestToMenu(newData)
-	result, err := service.repository.Insert(newUser)
+	var newMenu = helper.RequestToMenu(newData)
+	result, err := service.repository.Insert(newMenu)
 	if err != nil {
 		logrus.Error("Service: Insert data failed,", err)
 		return nil, errors.New("Cannot insert data " + err.Error())
@@ -96,9 +96,8 @@ func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, upd
 
 	updateData.Image = urlImage
 
-	var newUser = helper.RequestToMenu(updateData)
-
-	result, err := service.repository.Update(id, newUser)
+	var updateMenu = helper.RequestToMenu(updateData)
+	result, err := service.repository.Update(id, updateMenu)
 	if err != nil {
 		logrus.Error("Service: Update data failed: ", err)
 		return nil, errors.New("Cannot update data " + err.Error())
