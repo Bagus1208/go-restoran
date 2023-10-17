@@ -44,14 +44,14 @@ func (service *adminService) Insert(newData model.AdminInput) (*model.Admin, err
 	newID, err := service.generator.GenerateUUID()
 	if err != nil {
 		logrus.Error("Service: Generating ID failed")
-		return nil, errors.New("cannot generating id " + err.Error())
+		return nil, errors.New("cannot generating id: " + err.Error())
 	}
 
 	newUser.ID = newID
 	result, err := service.repository.Insert(newUser)
 	if err != nil {
 		logrus.Error("Service: Insert data failed,", err)
-		return nil, errors.New("cannot insert data " + err.Error())
+		return nil, errors.New("cannot insert data: " + err.Error())
 	}
 
 	return result, nil
@@ -61,7 +61,7 @@ func (service *adminService) Login(email string, password string) (*model.UserCr
 	result, err := service.repository.Login(email, password)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			return nil, errors.New("data not found")
+			return nil, errors.New("user admin not found")
 		}
 		return nil, errors.New("process failed")
 	}
@@ -82,7 +82,7 @@ func (service *adminService) SetNoTable(noTable int, email string, password stri
 	result, err := service.repository.Login(email, password)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			return "", errors.New("data admin not found")
+			return "", errors.New("user admin not found")
 		}
 		return "", errors.New("process failed")
 	}

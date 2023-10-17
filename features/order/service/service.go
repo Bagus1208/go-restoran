@@ -53,7 +53,7 @@ func (service *orderService) Insert(newData model.OrderInput) (*model.Order, err
 	result, err := service.repository.Insert(newOrder)
 	if err != nil {
 		logrus.Error("Service: Insert data failed,", err)
-		return nil, errors.New("cannot insert data " + err.Error())
+		return nil, errors.New("cannot insert data: " + err.Error())
 	}
 
 	return result, nil
@@ -67,7 +67,7 @@ func (service *orderService) GetAll(pagination model.Pagination) ([]model.Order,
 	result, err := service.repository.GetAll(pagination)
 	if err != nil {
 		logrus.Error("Service: Get all data failed,", err)
-		return nil, errors.New("cannot get all data " + err.Error())
+		return nil, errors.New("cannot get all data: " + err.Error())
 	}
 
 	return result, nil
@@ -77,7 +77,7 @@ func (service *orderService) GetByID(id int) (*model.Order, error) {
 	result, err := service.repository.GetByID(id)
 	if err != nil {
 		logrus.Error("Service: Get data by id failed,", err)
-		return nil, errors.New("cannot get data by id " + err.Error())
+		return nil, errors.New("cannot get data by id: " + err.Error())
 	}
 
 	return result, nil
@@ -87,7 +87,7 @@ func (service *orderService) Delete(id int) error {
 	err := service.repository.Delete(id)
 	if err != nil {
 		logrus.Error("Service: Delete data failed: ", err)
-		return errors.New("cannot delete data " + err.Error())
+		return errors.New("cannot delete data: " + err.Error())
 	}
 
 	return nil

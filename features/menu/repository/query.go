@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"mime/multipart"
-	"os"
+	"restoran/config"
 	"restoran/features/menu/model"
 
 	"github.com/cloudinary/cloudinary-go"
@@ -23,14 +24,16 @@ type MenuRepositoryInterface interface {
 }
 
 type menuRepo struct {
-	db  *gorm.DB
-	cdn *cloudinary.Cloudinary
+	db     *gorm.DB
+	cdn    *cloudinary.Cloudinary
+	config config.Config
 }
 
-func NewMenuRepo(DB *gorm.DB, CDN *cloudinary.Cloudinary) MenuRepositoryInterface {
+func NewMenuRepo(DB *gorm.DB, CDN *cloudinary.Cloudinary, config config.Config) MenuRepositoryInterface {
 	return &menuRepo{
-		db:  DB,
-		cdn: CDN,
+		db:     DB,
+		cdn:    CDN,
+		config: config,
 	}
 }
 
@@ -72,7 +75,7 @@ func (repository *menuRepo) GetCategory(category string, pagination model.Pagina
 
 func (repository *menuRepo) GetByName(name string) *model.Menu {
 	var menu model.Menu
-	result := repository.db.Where("name =?", name).First(&menu)
+	result := repository.db.Where("name = ?", name).First(&menu)
 	if result.Error != nil {
 		return nil
 	}
@@ -85,6 +88,10 @@ func (repository *menuRepo) Update(id int, updateData *model.Menu) (*model.Menu,
 	if result.Error != nil {
 		logrus.Error("Repository: Update data error,", result.Error)
 		return nil, result.Error
+	}
+
+	if result.RowsAffected < 1 {
+		return nil, errors.New("no data affected")
 	}
 
 	var updatedUser = new(model.Menu)
@@ -110,7 +117,7 @@ func (repository *menuRepo) Delete(id int) error {
 
 func (repository *menuRepo) UploadImage(ctx context.Context, file multipart.File, name string) (string, error) {
 	response, err := repository.cdn.Upload.Upload(ctx, file, uploader.UploadParams{
-		Folder:   os.Getenv("CLOUDINARY_UPLOAD_FOLDER_NAME"),
+		Folder:   repository.config.CDN_Folder_Name,
 		PublicID: name,
 	})
 	if err != nil {

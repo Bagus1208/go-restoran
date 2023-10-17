@@ -25,7 +25,7 @@ func main() {
 
 	var cdn = utils.CloudinaryInstance(*config)
 
-	var menuHandler = menu.FeatureMenu(db, cdn, validate)
+	var menuHandler = menu.FeatureMenu(db, cdn, validate, *config)
 	var adminHandler = admin.FeatureAdmin(db, *config, validate)
 	var orderHandler = order.FeatureOrder(db, *config, validate)
 
