@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"mime/multipart"
 	"os"
 	"restoran/features/menu/model"
@@ -46,10 +45,6 @@ func (repository *menuRepo) Insert(newData *model.Menu) (*model.Menu, error) {
 }
 
 func (repository *menuRepo) GetAll(pagination model.Pagination) ([]model.Menu, error) {
-	if pagination.Page <= 0 || pagination.PageSize <= 0 {
-		return nil, errors.New("invalid page and pageSize value")
-	}
-
 	var menus []model.Menu
 	var offset = (pagination.Page - 1) * pagination.PageSize
 
@@ -63,10 +58,6 @@ func (repository *menuRepo) GetAll(pagination model.Pagination) ([]model.Menu, e
 }
 
 func (repository *menuRepo) GetCategory(category string, pagination model.Pagination) ([]model.Menu, error) {
-	if pagination.Page <= 0 || pagination.PageSize <= 0 {
-		return nil, errors.New("invalid page and pageSize value")
-	}
-
 	var menus []model.Menu
 	var offset = (pagination.Page - 1) * pagination.PageSize
 

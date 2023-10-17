@@ -9,7 +9,7 @@ import (
 
 type OrderRepositoryInterface interface {
 	Insert(newData *model.Order) (*model.Order, error)
-	GetAll() ([]model.Order, error)
+	GetAll(pagination model.Pagination) ([]model.Order, error)
 	GetByID(id int) (*model.Order, error)
 	Delete(id int) error
 	FindMenu(menuNames []string) (bool, []int)
@@ -35,11 +35,11 @@ func (repository *orderRepo) Insert(newData *model.Order) (*model.Order, error) 
 	return newData, nil
 }
 
-func (repository *orderRepo) GetAll() ([]model.Order, error) {
+func (repository *orderRepo) GetAll(pagination model.Pagination) ([]model.Order, error) {
 	var orders []model.Order
+	var offset = (pagination.Page - 1) * pagination.PageSize
 
-	result := repository.db.Preload("Orders").Find(&orders)
-
+	result := repository.db.Offset(offset).Limit(pagination.PageSize).Preload("Orders").Find(&orders)
 	if result.Error != nil {
 		logrus.Error("Repository: Get all order error,", result.Error)
 		return nil, result.Error

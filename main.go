@@ -27,7 +27,7 @@ func main() {
 
 	var menuHandler = menu.FeatureMenu(db, cdn, validate)
 	var adminHandler = admin.FeatureAdmin(db, *config, validate)
-	var orderHandler = order.FeatureOrder(db)
+	var orderHandler = order.FeatureOrder(db, *config, validate)
 
 	helper.LogMiddlewares(e)
 

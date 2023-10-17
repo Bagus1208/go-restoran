@@ -13,6 +13,7 @@ import (
 type AdminHandlerInterface interface {
 	Insert() echo.HandlerFunc
 	Login() echo.HandlerFunc
+	SetNoTable() echo.HandlerFunc
 }
 
 type adminHandler struct {
@@ -60,5 +61,24 @@ func (handler *adminHandler) Login() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, helper.FormatResponse("successfully login", result))
+	}
+}
+
+func (handler *adminHandler) SetNoTable() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var setTable model.InputTable
+		if err := c.Bind(&setTable); err != nil {
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
+		}
+
+		result, err := handler.service.SetNoTable(setTable.NoTable, setTable.Email, setTable.Password)
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return c.JSON(http.StatusNotFound, helper.FormatResponse("admin not found", nil))
+			}
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
+		}
+
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get token table", result))
 	}
 }

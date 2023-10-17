@@ -14,6 +14,7 @@ import (
 type AdminServiceInterface interface {
 	Insert(newData model.AdminInput) (*model.Admin, error)
 	Login(email string, password string) (*model.UserCredential, error)
+	SetNoTable(noTable int, email string, password string) (string, error)
 }
 
 type adminService struct {
@@ -75,4 +76,21 @@ func (service *adminService) Login(email string, password string) (*model.UserCr
 	response.Access = token
 
 	return response, nil
+}
+
+func (service *adminService) SetNoTable(noTable int, email string, password string) (string, error) {
+	result, err := service.repository.Login(email, password)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return "", errors.New("data admin not found")
+		}
+		return "", errors.New("process failed")
+	}
+
+	token := service.jwt.GenerateTableToken(noTable, result.Name)
+	if token == "" {
+		return "", errors.New("get token process failed")
+	}
+
+	return token, nil
 }

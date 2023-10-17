@@ -34,6 +34,17 @@ func (handler *orderHandler) Insert() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
+		var stringToken = c.Request().Header.Get("Authorization")
+		if stringToken == "" {
+			return c.JSON(http.StatusUnauthorized, helper.FormatResponse("token not found", nil))
+		}
+
+		noTable, err := helper.ExtractToken(stringToken)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
+		}
+
+		orderInsert.NoTable = noTable
 		result, err := handler.service.Insert(orderInsert)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
@@ -45,7 +56,17 @@ func (handler *orderHandler) Insert() echo.HandlerFunc {
 
 func (handler *orderHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		result, err := handler.service.GetAll()
+		var pagination model.Pagination
+
+		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
+		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
+
+		if pagination.Page < 1 || pagination.PageSize < 1 {
+			pagination.Page = 1
+			pagination.PageSize = 10
+		}
+
+		result, err := handler.service.GetAll(pagination)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}

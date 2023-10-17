@@ -10,5 +10,5 @@ type MenuInput struct {
 
 type Pagination struct {
 	Page     int `json:"page" form:"page" validate:"required"`
-	PageSize int `json:"pageSize" form:"pageSize" validate:"required"`
+	PageSize int `json:"pageSize" form:"page_size" validate:"required"`
 }

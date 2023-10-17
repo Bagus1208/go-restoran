@@ -73,7 +73,7 @@ func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData mod
 
 func (service *menuService) GetAll(pagination model.Pagination) ([]model.Menu, error) {
 	if pagination.Page <= 0 || pagination.PageSize <= 0 {
-		return nil, errors.New("invalid page and pageSize value")
+		return nil, errors.New("invalid page and page_size value")
 	}
 
 	result, err := service.repository.GetAll(pagination)
@@ -87,7 +87,7 @@ func (service *menuService) GetAll(pagination model.Pagination) ([]model.Menu, e
 
 func (service *menuService) GetCategory(category string, pagination model.Pagination) ([]model.Menu, error) {
 	if pagination.Page <= 0 || pagination.PageSize <= 0 {
-		return nil, errors.New("invalid page and pageSize value")
+		return nil, errors.New("invalid page and page_size value")
 	}
 
 	result, err := service.repository.GetCategory(category, pagination)

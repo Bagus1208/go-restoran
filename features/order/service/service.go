@@ -6,27 +6,34 @@ import (
 	"restoran/features/order/repository"
 	"restoran/helper"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 )
 
 type OrderServiceInterface interface {
 	Insert(newData model.OrderInput) (*model.Order, error)
-	GetAll() ([]model.Order, error)
+	GetAll(pagination model.Pagination) ([]model.Order, error)
 	GetByID(id int) (*model.Order, error)
 	Delete(id int) error
 }
 
 type orderService struct {
 	repository repository.OrderRepositoryInterface
+	validator  *validator.Validate
 }
 
-func NewOrderService(repo repository.OrderRepositoryInterface) OrderServiceInterface {
+func NewOrderService(repo repository.OrderRepositoryInterface, validate *validator.Validate) OrderServiceInterface {
 	return &orderService{
 		repository: repo,
 	}
 }
 
 func (service *orderService) Insert(newData model.OrderInput) (*model.Order, error) {
+	err := service.validator.Struct(newData)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
+
 	var menuName []string
 	for _, order := range newData.Orders {
 		menuName = append(menuName, order.MenuName)
@@ -52,8 +59,12 @@ func (service *orderService) Insert(newData model.OrderInput) (*model.Order, err
 	return result, nil
 }
 
-func (service *orderService) GetAll() ([]model.Order, error) {
-	result, err := service.repository.GetAll()
+func (service *orderService) GetAll(pagination model.Pagination) ([]model.Order, error) {
+	if pagination.Page <= 0 || pagination.PageSize <= 0 {
+		return nil, errors.New("invalid page and page_size value")
+	}
+
+	result, err := service.repository.GetAll(pagination)
 	if err != nil {
 		logrus.Error("Service: Get all data failed,", err)
 		return nil, errors.New("cannot get all data " + err.Error())
