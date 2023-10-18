@@ -17,3 +17,8 @@ type Menu struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 }
+
+type Favorite struct {
+	MenuName   string `json:"menu_name"`
+	TotalOrder int    `json:"total_order"`
+}

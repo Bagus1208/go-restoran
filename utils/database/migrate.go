@@ -9,5 +9,5 @@ import (
 )
 
 func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&menu.Menu{}, &admin.Admin{}, order.Order{}, order.OrderDetail{})
+	db.AutoMigrate(&menu.Menu{}, &admin.Admin{}, &order.Order{}, &order.OrderDetail{})
 }

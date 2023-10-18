@@ -17,6 +17,7 @@ type MenuRepositoryInterface interface {
 	Insert(newData *model.Menu) (*model.Menu, error)
 	GetAll(pagination model.Pagination) ([]model.Menu, error)
 	GetCategory(category string, pagination model.Pagination) ([]model.Menu, error)
+	GetFavorite() ([]model.Favorite, error)
 	GetByName(name string) *model.Menu
 	Update(id int, updateData *model.Menu) (*model.Menu, error)
 	Delete(id int) error
@@ -81,6 +82,23 @@ func (repository *menuRepo) GetByName(name string) *model.Menu {
 	}
 
 	return &menu
+}
+
+func (repository *menuRepo) GetFavorite() ([]model.Favorite, error) {
+	var favorites []model.Favorite
+	result := repository.db.Table("order_details").
+		Select("menu_name, SUM(quantity) AS total_order").
+		Group("menu_name").
+		Having("SUM(quantity) > ?", 20).
+		Order("total_order DESC").
+		Scan(&favorites)
+
+	if result.Error != nil {
+		logrus.Error("Repository: Get favorite data error", result.Error)
+		return nil, result.Error
+	}
+
+	return favorites, nil
 }
 
 func (repository *menuRepo) Update(id int, updateData *model.Menu) (*model.Menu, error) {

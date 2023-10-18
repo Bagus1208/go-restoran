@@ -25,6 +25,7 @@ type orderService struct {
 func NewOrderService(repo repository.OrderRepositoryInterface, validate *validator.Validate) OrderServiceInterface {
 	return &orderService{
 		repository: repo,
+		validator:  validate,
 	}
 }
 
