@@ -40,7 +40,7 @@ func (j *JWT) generateToken(id string) string {
 	var claims = jwt.MapClaims{}
 	claims["id"] = id
 	claims["iat"] = time.Now().Unix()
-	claims["exp"] = time.Now().Add(time.Minute * 10).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
 
 	var sign = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	validToken, err := sign.SignedString([]byte(j.signKey))

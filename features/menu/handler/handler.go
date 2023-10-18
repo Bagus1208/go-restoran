@@ -57,9 +57,13 @@ func (handler *menuHandler) Insert() echo.HandlerFunc {
 func (handler *menuHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var pagination model.Pagination
-		if err := c.Bind(&pagination); err != nil || pagination.Page < 1 || pagination.PageSize < 1 {
+
+		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
+		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
+
+		if pagination.Page < 1 || pagination.PageSize < 1 {
 			pagination.Page = 1
-			pagination.PageSize = 5
+			pagination.PageSize = 10
 		}
 
 		result, err := handler.service.GetAll(pagination)
@@ -79,8 +83,13 @@ func (handler *menuHandler) GetCategory() echo.HandlerFunc {
 		}
 
 		var pagination model.Pagination
-		if err := c.Bind(&pagination); err != nil {
-			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
+
+		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
+		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
+
+		if pagination.Page < 1 || pagination.PageSize < 1 {
+			pagination.Page = 1
+			pagination.PageSize = 10
 		}
 
 		result, err := handler.service.GetCategory(category, pagination)
@@ -131,6 +140,9 @@ func (handler *menuHandler) Delete() echo.HandlerFunc {
 
 		err = handler.service.Delete(id)
 		if err != nil {
+			if strings.Contains(err.Error(), "no rows affected") {
+				return c.JSON(http.StatusNotFound, helper.FormatResponse(err.Error(), nil))
+			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 

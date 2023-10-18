@@ -1,14 +1,14 @@
 package model
 
 type MenuInput struct {
-	Name        string `json:"name" form:"name" validate:"required"`
-	Category    string `json:"category" form:"category" validate:"required"`
-	Price       int    `json:"price" form:"price" validate:"required"`
-	Description string `json:"descriptions" form:"description" validate:"required"`
-	Image       string `json:"image" form:"image"`
+	Name        string `form:"name" validate:"required"`
+	Category    string `form:"category" validate:"required"`
+	Price       int    `form:"price" validate:"required"`
+	Description string `form:"description" validate:"required"`
+	Image       string `form:"image"`
 }
 
 type Pagination struct {
-	Page     int `json:"page" form:"page" validate:"required"`
-	PageSize int `json:"pageSize" form:"page_size" validate:"required"`
+	Page     int
+	PageSize int
 }

@@ -6,6 +6,7 @@ import (
 	"restoran/features/order/service"
 	"restoran/helper"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -100,6 +101,9 @@ func (handler *orderHandler) Delete() echo.HandlerFunc {
 
 		err = handler.service.Delete(id)
 		if err != nil {
+			if strings.Contains(err.Error(), "no rows affected") {
+				return c.JSON(http.StatusNotFound, helper.FormatResponse(err.Error(), nil))
+			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 

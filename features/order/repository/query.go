@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"restoran/features/order/model"
 
 	"github.com/sirupsen/logrus"
@@ -68,6 +69,11 @@ func (repository *orderRepo) Delete(id int) error {
 	if result.Error != nil {
 		logrus.Error("Repository: Delete order error,", result.Error)
 		return result.Error
+	}
+
+	if result.RowsAffected < 1 {
+		logrus.Error("Repository: Delete order error,", result.Error)
+		return errors.New("no rows affected")
 	}
 
 	return nil
