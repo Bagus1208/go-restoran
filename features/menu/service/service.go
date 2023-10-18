@@ -105,11 +105,6 @@ func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, upd
 		return nil, errors.New("validation failed please check your input and try again")
 	}
 
-	var findMenu = service.repository.GetByName(updateData.Name)
-	if findMenu != nil {
-		return nil, errors.New("menu already exists")
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

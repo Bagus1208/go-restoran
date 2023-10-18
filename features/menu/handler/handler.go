@@ -140,6 +140,9 @@ func (handler *menuHandler) Delete() echo.HandlerFunc {
 
 		err = handler.service.Delete(id)
 		if err != nil {
+			if strings.Contains(err.Error(), "no rows affected") {
+				return c.JSON(http.StatusNotFound, helper.FormatResponse(err.Error(), nil))
+			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 

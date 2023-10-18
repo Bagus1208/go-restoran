@@ -90,10 +90,6 @@ func (repository *menuRepo) Update(id int, updateData *model.Menu) (*model.Menu,
 		return nil, result.Error
 	}
 
-	if result.RowsAffected < 1 {
-		return nil, errors.New("no data affected")
-	}
-
 	var updatedUser = new(model.Menu)
 	if err := repository.db.Where("id = ?", id).First(updatedUser).Error; err != nil {
 		logrus.Error("Repository: Get data update error,", result.Error)
@@ -110,6 +106,11 @@ func (repository *menuRepo) Delete(id int) error {
 	if result.Error != nil {
 		logrus.Error("Repository: Delete error,", result.Error)
 		return result.Error
+	}
+
+	if result.RowsAffected < 1 {
+		logrus.Error("Repository: Delete error,", result.Error)
+		return errors.New("no rows affected")
 	}
 
 	return nil
