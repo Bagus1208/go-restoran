@@ -15,6 +15,7 @@ type MenuHandlerInterface interface {
 	Insert() echo.HandlerFunc
 	GetAll() echo.HandlerFunc
 	GetCategory() echo.HandlerFunc
+	GetFavorite() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
 }
@@ -98,6 +99,17 @@ func (handler *menuHandler) GetCategory() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get menu by category", result))
+	}
+}
+
+func (handler *menuHandler) GetFavorite() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		result, err := handler.service.GetFavorite()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
+		}
+
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get favorite menu", result))
 	}
 }
 

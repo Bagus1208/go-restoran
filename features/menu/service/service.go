@@ -17,6 +17,7 @@ type MenuServiceInterface interface {
 	Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.Menu, error)
 	GetAll(model.Pagination) ([]model.Menu, error)
 	GetCategory(category string, pagination model.Pagination) ([]model.Menu, error)
+	GetFavorite() ([]model.Favorite, error)
 	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.Menu, error)
 	Delete(id int) error
 }
@@ -94,6 +95,16 @@ func (service *menuService) GetCategory(category string, pagination model.Pagina
 	if err != nil {
 		logrus.Error("Service: Get data by category failed,", err)
 		return nil, errors.New("cannot get data by category: " + err.Error())
+	}
+
+	return result, nil
+}
+
+func (service *menuService) GetFavorite() ([]model.Favorite, error) {
+	result, err := service.repository.GetFavorite()
+	if err != nil {
+		logrus.Error("Service: Get favorite data failed,", err)
+		return nil, errors.New("cannot get favorite data: " + err.Error())
 	}
 
 	return result, nil
