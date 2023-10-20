@@ -14,6 +14,7 @@ import (
 type JWTInterface interface {
 	GenerateJWT(userID string) map[string]any
 	GenerateTableToken(noTable int, adminName string) string
+	ExtractToken(tokenString string) (int, error)
 }
 
 type JWT struct {
@@ -68,7 +69,7 @@ func (j *JWT) GenerateTableToken(noTable int, adminName string) string {
 	return validToken
 }
 
-func ExtractToken(tokenString string) (int, error) {
+func (j *JWT) ExtractToken(tokenString string) (int, error) {
 	parts := strings.Split(tokenString, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		return 0, errors.New("invalid token")

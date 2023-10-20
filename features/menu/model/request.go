@@ -8,7 +8,9 @@ type MenuInput struct {
 	Image       string `form:"image"`
 }
 
-type Pagination struct {
+type QueryParam struct {
 	Page     int
 	PageSize int
+	Name     string
+	Category string
 }

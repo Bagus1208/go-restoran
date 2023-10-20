@@ -9,8 +9,7 @@ import (
 )
 
 func RouteMenu(e *echo.Echo, menuHandler handler.MenuHandlerInterface, config config.Config) {
-	e.GET("/menus", menuHandler.GetAll())
-	e.GET("/menus/:category", menuHandler.GetCategory())
+	e.GET("/menus", menuHandler.GetData())
 	e.GET("/menus/favorites", menuHandler.GetFavorite())
 
 	menus := e.Group("/menus")

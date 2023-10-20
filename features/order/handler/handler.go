@@ -40,14 +40,11 @@ func (handler *orderHandler) Insert() echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, helper.FormatResponse("token not found", nil))
 		}
 
-		noTable, err := helper.ExtractToken(stringToken)
+		result, err := handler.service.Insert(orderInsert, stringToken)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
-		}
-
-		orderInsert.NoTable = noTable
-		result, err := handler.service.Insert(orderInsert)
-		if err != nil {
+			if strings.Contains(err.Error(), "invalid token") {
+				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
+			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
@@ -101,7 +98,7 @@ func (handler *orderHandler) Delete() echo.HandlerFunc {
 
 		err = handler.service.Delete(id)
 		if err != nil {
-			if strings.Contains(err.Error(), "no rows affected") {
+			if strings.Contains(err.Error(), "data not found") {
 				return c.JSON(http.StatusNotFound, helper.FormatResponse(err.Error(), nil))
 			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))

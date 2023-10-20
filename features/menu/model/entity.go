@@ -7,18 +7,13 @@ import (
 )
 
 type Menu struct {
-	ID          uint           `gorm:"primaryKey" json:"id"`
-	Name        string         `gorm:"type:varchar(255)" json:"name"`
-	Category    string         `gorm:"type:varchar(255)" json:"category"`
-	Price       int            `gorm:"type:int" json:"price"`
-	Description string         `gorm:"type:text" json:"description"`
-	Image       string         `json:"image"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID          uint   `gorm:"primaryKey; type:int"`
+	Name        string `gorm:"type:varchar(255)"`
+	Category    string `gorm:"type:varchar(255)"`
+	Price       int    `gorm:"type:int"`
+	Description string `gorm:"type:text"`
+	Image       string `gorm:"type:text"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-}
-
-type Favorite struct {
-	MenuName   string `json:"menu_name"`
-	TotalOrder int    `json:"total_order"`
 }

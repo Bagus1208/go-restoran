@@ -1,24 +1,23 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"mime/multipart"
 	"restoran/features/menu/model"
 	"restoran/features/menu/repository"
 	"restoran/helper"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 )
 
 type MenuServiceInterface interface {
-	Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.Menu, error)
-	GetAll(model.Pagination) ([]model.Menu, error)
-	GetCategory(category string, pagination model.Pagination) ([]model.Menu, error)
+	Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.MenuResponse, error)
+	GetAll(pagination model.QueryParam) ([]model.MenuResponse, error)
+	GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, error)
 	GetFavorite() ([]model.Favorite, error)
-	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.Menu, error)
+	GetByName(name string) (model.MenuResponse, error)
+	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error)
 	Delete(id int) error
 }
 
@@ -34,7 +33,7 @@ func NewMenuService(repo repository.MenuRepositoryInterface, validate *validator
 	}
 }
 
-func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.Menu, error) {
+func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.MenuResponse, error) {
 	err := service.validator.Struct(newData)
 	if err != nil {
 		return nil, errors.New("validation failed please check your input and try again")
@@ -45,18 +44,9 @@ func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData mod
 		return nil, errors.New("menu already exists")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	file, err := fileHeader.Open()
+	file := helper.OpenFileHeader(fileHeader)
+	urlImage, err := service.repository.UploadImage(file, newData.Name)
 	if err != nil {
-		logrus.Error("Service: Open fileHeader failed,", err)
-		return nil, errors.New("cannot open fileHeader: " + err.Error())
-	}
-
-	urlImage, err := service.repository.UploadImage(ctx, file, newData.Name)
-	if err != nil {
-		logrus.Error("Service: Upload image failed,", err)
 		return nil, errors.New("cannot upload image: " + err.Error())
 	}
 
@@ -65,67 +55,81 @@ func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData mod
 	var newMenu = helper.RequestToMenu(newData)
 	result, err := service.repository.Insert(newMenu)
 	if err != nil {
-		logrus.Error("Service: Insert data failed,", err)
-		return nil, errors.New("cannot insert data: " + err.Error())
+		return nil, errors.New("insert data menu failed")
 	}
 
-	return result, nil
+	var menuResponse = helper.MenuToResponse(result)
+
+	return &menuResponse, nil
 }
 
-func (service *menuService) GetAll(pagination model.Pagination) ([]model.Menu, error) {
+func (service *menuService) GetAll(pagination model.QueryParam) ([]model.MenuResponse, error) {
 	if pagination.Page <= 0 || pagination.PageSize <= 0 {
 		return nil, errors.New("invalid page and page_size value")
 	}
 
 	result, err := service.repository.GetAll(pagination)
 	if err != nil {
-		logrus.Error("Service: Get all data failed,", err)
-		return nil, errors.New("cannot get all data: " + err.Error())
+		return nil, errors.New("get data menu failed")
 	}
 
-	return result, nil
+	var menuResponse []model.MenuResponse
+
+	for _, menu := range result {
+		menuResponse = append(menuResponse, helper.MenuToResponse(&menu))
+	}
+
+	return menuResponse, nil
 }
 
-func (service *menuService) GetCategory(category string, pagination model.Pagination) ([]model.Menu, error) {
-	if pagination.Page <= 0 || pagination.PageSize <= 0 {
+func (service *menuService) GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, error) {
+	if queryParam.Page <= 0 || queryParam.PageSize <= 0 {
 		return nil, errors.New("invalid page and page_size value")
 	}
 
-	result, err := service.repository.GetCategory(category, pagination)
+	result, err := service.repository.GetCategory(queryParam)
 	if err != nil {
 		logrus.Error("Service: Get data by category failed,", err)
-		return nil, errors.New("cannot get data by category: " + err.Error())
+		return nil, errors.New("get data menu by category failed")
 	}
 
-	return result, nil
+	var menuResponse []model.MenuResponse
+	for _, menu := range result {
+		menuResponse = append(menuResponse, helper.MenuToResponse(&menu))
+	}
+
+	return menuResponse, nil
 }
 
 func (service *menuService) GetFavorite() ([]model.Favorite, error) {
 	result, err := service.repository.GetFavorite()
 	if err != nil {
 		logrus.Error("Service: Get favorite data failed,", err)
-		return nil, errors.New("cannot get favorite data: " + err.Error())
+		return nil, errors.New("get data favorite menu failed")
 	}
 
 	return result, nil
 }
 
-func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.Menu, error) {
+func (service *menuService) GetByName(name string) (model.MenuResponse, error) {
+	result := service.repository.GetByName(name)
+	if result == nil {
+		return model.MenuResponse{}, errors.New("menu not found")
+	}
+
+	var menuResponse = helper.MenuToResponse(result)
+
+	return menuResponse, nil
+}
+
+func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error) {
 	err := service.validator.Struct(updateData)
 	if err != nil {
 		return nil, errors.New("validation failed please check your input and try again")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	file, err := fileHeader.Open()
-	if err != nil {
-		logrus.Error("Service: Open fileHeader failed,", err)
-		return nil, errors.New("cannot open fileHeader: " + err.Error())
-	}
-
-	urlImage, err := service.repository.UploadImage(ctx, file, updateData.Name)
+	var file = helper.OpenFileHeader(fileHeader)
+	urlImage, err := service.repository.UploadImage(file, updateData.Name)
 	if err != nil {
 		logrus.Error("Service: Upload image failed,", err)
 		return nil, errors.New("cannot upload image: " + err.Error())
@@ -140,14 +144,16 @@ func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, upd
 		return nil, errors.New("cannot update data: " + err.Error())
 	}
 
-	return result, nil
+	var menuResponse = helper.MenuToResponse(result)
+
+	return &menuResponse, nil
 }
 
 func (service *menuService) Delete(id int) error {
 	err := service.repository.Delete(id)
 	if err != nil {
 		logrus.Error("Service: Delete data failed: ", err)
-		return errors.New("cannot delete data: " + err.Error())
+		return err
 	}
 
 	return nil

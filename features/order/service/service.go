@@ -7,40 +7,47 @@ import (
 	"restoran/helper"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/sirupsen/logrus"
 )
 
 type OrderServiceInterface interface {
-	Insert(newData model.OrderInput) (*model.Order, error)
-	GetAll(pagination model.Pagination) ([]model.Order, error)
-	GetByID(id int) (*model.Order, error)
+	Insert(newData model.OrderInput, stringToken string) (*model.OrderResponse, error)
+	GetAll(pagination model.Pagination) ([]model.OrderResponse, error)
+	GetByID(id int) (*model.OrderResponse, error)
 	Delete(id int) error
 }
 
 type orderService struct {
 	repository repository.OrderRepositoryInterface
 	validator  *validator.Validate
+	jwt        helper.JWTInterface
 }
 
-func NewOrderService(repo repository.OrderRepositoryInterface, validate *validator.Validate) OrderServiceInterface {
+func NewOrderService(repo repository.OrderRepositoryInterface, validate *validator.Validate, jwt helper.JWTInterface) OrderServiceInterface {
 	return &orderService{
 		repository: repo,
 		validator:  validate,
+		jwt:        jwt,
 	}
 }
 
-func (service *orderService) Insert(newData model.OrderInput) (*model.Order, error) {
-	err := service.validator.Struct(newData)
+func (service *orderService) Insert(newData model.OrderInput, stringToken string) (*model.OrderResponse, error) {
+	noTable, err := service.jwt.ExtractToken(stringToken)
+	if err != nil {
+		return nil, err
+	}
+
+	newData.NoTable = noTable
+	err = service.validator.Struct(newData)
 	if err != nil {
 		return nil, errors.New("validation failed please check your input and try again")
 	}
 
-	var menuName []string
+	var menuID []int
 	for _, order := range newData.Orders {
-		menuName = append(menuName, order.MenuName)
+		menuID = append(menuID, order.MenuID)
 	}
 
-	findMenu, price := service.repository.FindMenu(menuName)
+	findMenu, price := service.repository.FindMenu(menuID)
 	if !findMenu {
 		return nil, errors.New("menu not found")
 	}
@@ -53,42 +60,67 @@ func (service *orderService) Insert(newData model.OrderInput) (*model.Order, err
 	var newOrder = helper.RequestToOrder(newData, totalPrice)
 	result, err := service.repository.Insert(newOrder)
 	if err != nil {
-		logrus.Error("Service: Insert data failed,", err)
-		return nil, errors.New("cannot insert data: " + err.Error())
+		return nil, errors.New("insert data order failed")
 	}
 
-	return result, nil
+	var orderDetailResponse []model.OrderDetailResponse
+	for _, order := range result.Orders {
+		orderDetailResponse = append(orderDetailResponse, helper.OrderDetailToResponse(&order))
+	}
+
+	var orderResponse = helper.OrderToResponse(result)
+	orderResponse.Orders = orderDetailResponse
+
+	return &orderResponse, nil
 }
 
-func (service *orderService) GetAll(pagination model.Pagination) ([]model.Order, error) {
+func (service *orderService) GetAll(pagination model.Pagination) ([]model.OrderResponse, error) {
 	if pagination.Page <= 0 || pagination.PageSize <= 0 {
 		return nil, errors.New("invalid page and page_size value")
 	}
 
 	result, err := service.repository.GetAll(pagination)
 	if err != nil {
-		logrus.Error("Service: Get all data failed,", err)
-		return nil, errors.New("cannot get all data: " + err.Error())
+		return nil, errors.New("get data order failed")
 	}
 
-	return result, nil
+	var orderResponseList []model.OrderResponse
+
+	for _, order := range result {
+		var orderDetailResponse []model.OrderDetailResponse
+
+		for _, orderDetail := range order.Orders {
+			orderDetailResponse = append(orderDetailResponse, helper.OrderDetailToResponse(&orderDetail))
+		}
+		var orderResponse = helper.OrderToResponse(&order)
+		orderResponse.Orders = orderDetailResponse
+		orderResponseList = append(orderResponseList, orderResponse)
+	}
+
+	return orderResponseList, nil
 }
 
-func (service *orderService) GetByID(id int) (*model.Order, error) {
+func (service *orderService) GetByID(id int) (*model.OrderResponse, error) {
 	result, err := service.repository.GetByID(id)
 	if err != nil {
-		logrus.Error("Service: Get data by id failed,", err)
-		return nil, errors.New("cannot get data by id: " + err.Error())
+		return nil, errors.New("get data order by id failed")
 	}
 
-	return result, nil
+	var orderDetailResponse []model.OrderDetailResponse
+	for _, order := range result.Orders {
+		orderDetailResponse = append(orderDetailResponse, helper.OrderDetailToResponse(&order))
+	}
+
+	var orderResponse = helper.OrderToResponse(result)
+	orderResponse.Orders = orderDetailResponse
+
+	return &orderResponse, nil
 }
 
 func (service *orderService) Delete(id int) error {
 	err := service.repository.Delete(id)
 	if err != nil {
-		logrus.Error("Service: Delete data failed: ", err)
-		return errors.New("cannot delete data: " + err.Error())
+		return err
 	}
 
 	return nil

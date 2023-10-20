@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"restoran/config"
 	"restoran/features/menu/model"
+	"time"
 
 	"github.com/cloudinary/cloudinary-go"
 	"github.com/cloudinary/cloudinary-go/api/uploader"
@@ -15,13 +16,13 @@ import (
 
 type MenuRepositoryInterface interface {
 	Insert(newData *model.Menu) (*model.Menu, error)
-	GetAll(pagination model.Pagination) ([]model.Menu, error)
-	GetCategory(category string, pagination model.Pagination) ([]model.Menu, error)
+	GetAll(pagination model.QueryParam) ([]model.Menu, error)
+	GetCategory(queryParam model.QueryParam) ([]model.Menu, error)
 	GetFavorite() ([]model.Favorite, error)
 	GetByName(name string) *model.Menu
 	Update(id int, updateData *model.Menu) (*model.Menu, error)
 	Delete(id int) error
-	UploadImage(ctx context.Context, file multipart.File, name string) (string, error)
+	UploadImage(file multipart.File, name string) (string, error)
 }
 
 type menuRepo struct {
@@ -48,7 +49,7 @@ func (repository *menuRepo) Insert(newData *model.Menu) (*model.Menu, error) {
 	return newData, nil
 }
 
-func (repository *menuRepo) GetAll(pagination model.Pagination) ([]model.Menu, error) {
+func (repository *menuRepo) GetAll(pagination model.QueryParam) ([]model.Menu, error) {
 	var menus []model.Menu
 	var offset = (pagination.Page - 1) * pagination.PageSize
 
@@ -61,14 +62,18 @@ func (repository *menuRepo) GetAll(pagination model.Pagination) ([]model.Menu, e
 	return menus, nil
 }
 
-func (repository *menuRepo) GetCategory(category string, pagination model.Pagination) ([]model.Menu, error) {
+func (repository *menuRepo) GetCategory(queryParam model.QueryParam) ([]model.Menu, error) {
 	var menus []model.Menu
-	var offset = (pagination.Page - 1) * pagination.PageSize
+	var offset = (queryParam.Page - 1) * queryParam.PageSize
 
-	result := repository.db.Where("category = ?", category).Offset(offset).Limit(pagination.PageSize).Find(&menus)
+	result := repository.db.Where("category = ?", queryParam.Category).Offset(offset).Limit(queryParam.PageSize).Find(&menus)
 	if result.Error != nil {
 		logrus.Error("Repository: Get data by category error", result.Error)
 		return nil, result.Error
+	}
+
+	if result == nil {
+		return nil, errors.New("category not found")
 	}
 
 	return menus, nil
@@ -128,13 +133,16 @@ func (repository *menuRepo) Delete(id int) error {
 
 	if result.RowsAffected < 1 {
 		logrus.Error("Repository: Delete error,", result.Error)
-		return errors.New("no rows affected")
+		return errors.New("data not found")
 	}
 
 	return nil
 }
 
-func (repository *menuRepo) UploadImage(ctx context.Context, file multipart.File, name string) (string, error) {
+func (repository *menuRepo) UploadImage(file multipart.File, name string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	response, err := repository.cdn.Upload.Upload(ctx, file, uploader.UploadParams{
 		Folder:   repository.config.CDN_Folder_Name,
 		PublicID: name,

@@ -13,8 +13,7 @@ import (
 
 type MenuHandlerInterface interface {
 	Insert() echo.HandlerFunc
-	GetAll() echo.HandlerFunc
-	GetCategory() echo.HandlerFunc
+	GetData() echo.HandlerFunc
 	GetFavorite() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
@@ -55,50 +54,42 @@ func (handler *menuHandler) Insert() echo.HandlerFunc {
 	}
 }
 
-func (handler *menuHandler) GetAll() echo.HandlerFunc {
+func (handler *menuHandler) GetData() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var pagination model.Pagination
+		var pagination model.QueryParam
 
 		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
 		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
+		pagination.Name = c.QueryParam("name")
+		pagination.Category = c.QueryParam("category")
 
 		if pagination.Page < 1 || pagination.PageSize < 1 {
 			pagination.Page = 1
 			pagination.PageSize = 10
 		}
 
-		result, err := handler.service.GetAll(pagination)
+		var result []model.MenuResponse
+		var err error
+
+		if pagination.Name != "" {
+			data, err := handler.service.GetByName(pagination.Name)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
+			}
+
+			return c.JSON(http.StatusOK, helper.FormatResponse("successfully get menu", data))
+		} else if pagination.Category != "" {
+			result, err = handler.service.GetCategory(pagination)
+		} else {
+			result, err = handler.service.GetAll(pagination)
+		}
+
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
 		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get all menu", result))
-	}
-}
 
-func (handler *menuHandler) GetCategory() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		category := c.Param("category")
-		if category == "" {
-			return c.JSON(http.StatusBadRequest, helper.FormatResponse("category is required", nil))
-		}
-
-		var pagination model.Pagination
-
-		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
-		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
-
-		if pagination.Page < 1 || pagination.PageSize < 1 {
-			pagination.Page = 1
-			pagination.PageSize = 10
-		}
-
-		result, err := handler.service.GetCategory(category, pagination)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
-		}
-
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get menu by category", result))
 	}
 }
 
