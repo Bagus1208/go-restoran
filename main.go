@@ -15,6 +15,10 @@ import (
 	orderRepository "restoran/features/order/repository"
 	orderService "restoran/features/order/service"
 
+	transactionHandler "restoran/features/transaction/handler"
+	transactionRepository "restoran/features/transaction/repository"
+	transactionService "restoran/features/transaction/service"
+
 	"restoran/helper"
 	"restoran/routes"
 	"restoran/utils"
@@ -35,6 +39,9 @@ func main() {
 
 	var cdn = utils.CloudinaryInstance(*config)
 
+	var snapClient = utils.MidtransSnapClient(*config)
+	var coreAPIClient = utils.MidtransCoreAPIClient(*config)
+
 	var adminRepo = adminRepository.NewAdminRepo(db)
 	var adminService = adminService.NewAdminService(adminRepo, jwt, validate)
 	var adminHandler = adminHandler.NewAdminHandler(adminService)
@@ -47,11 +54,16 @@ func main() {
 	var orderService = orderService.NewOrderService(orderRepo, validate, jwt)
 	var orderHandler = orderHandler.NewOrderHandler(orderService)
 
+	var transactionRepo = transactionRepository.NewTransactionRepo(db)
+	var transactionService = transactionService.NewTransactionService(transactionRepo, validate, snapClient, coreAPIClient)
+	var transactionHandler = transactionHandler.NewTransactionHandler(transactionService)
+
 	helper.LogMiddlewares(e)
 
 	routes.RouteMenu(e, menuHandler, *config)
 	routes.RouteAdmin(e, adminHandler)
 	routes.RouteOrder(e, orderHandler, *config)
+	routes.RouteTransaction(e, transactionHandler, *config)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", config.Server_Port)).Error())
 }

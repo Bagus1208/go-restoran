@@ -1,7 +1,6 @@
 package model
 
 import (
-	"restoran/features/menu/model"
 	"time"
 
 	"gorm.io/gorm"
@@ -19,11 +18,11 @@ type Order struct {
 }
 
 type OrderDetail struct {
-	ID        uint       `gorm:"primaryKey; type:int"`
-	OrderID   int        `gorm:"type:int"`
-	MenuID    int        `gorm:"type:int"`
-	Menu      model.Menu `gorm:"foreignKey:MenuID"`
-	Quantity  int        `gorm:"type:int"`
+	ID      uint `gorm:"primaryKey; type:int"`
+	OrderID int  `gorm:"type:int"`
+	MenuID  int  `gorm:"type:int" json:"menu_id"`
+	// Menu      model.Menu `gorm:"foreignKey:MenuID"`
+	Quantity  int `gorm:"type:int" json:"quantity"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
