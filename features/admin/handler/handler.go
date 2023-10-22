@@ -55,7 +55,7 @@ func (handler *adminHandler) Login() echo.HandlerFunc {
 		result, err := handler.service.Login(adminLogin.Email, adminLogin.Password)
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
-				return c.JSON(http.StatusNotFound, helper.FormatResponse("user admin not found", nil))
+				return c.JSON(http.StatusNotFound, helper.FormatResponse(err.Error(), nil))
 			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}

@@ -19,6 +19,7 @@ type Config struct {
 	CDN_API_Key     string
 	CDN_API_Secret  string
 	CDN_Folder_Name string
+	MT_Server_Key   string
 }
 
 func InitConfig() *Config {
@@ -74,6 +75,9 @@ func loadConfig() *Config {
 	}
 	if value, found := os.LookupEnv("CLOUDINARY_UPLOAD_FOLDER_NAME"); found {
 		result.CDN_Folder_Name = value
+	}
+	if value, found := os.LookupEnv("MIDTRANS_SERVER_KEY"); found {
+		result.MT_Server_Key = value
 	}
 
 	return result

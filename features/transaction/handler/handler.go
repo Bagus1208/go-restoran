@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
-	"restoran/features/order/model"
-	"restoran/features/order/service"
+	"restoran/features/transaction/model"
+	"restoran/features/transaction/service"
 	"restoran/helper"
 	"strconv"
 	"strings"
@@ -11,50 +12,46 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type OrderHandlerInterface interface {
+type TransactionHandlerInterface interface {
 	Insert() echo.HandlerFunc
 	GetAll() echo.HandlerFunc
 	GetByID() echo.HandlerFunc
 	Delete() echo.HandlerFunc
+	Notifications() echo.HandlerFunc
 }
 
-type orderHandler struct {
-	service service.OrderServiceInterface
+type transactionHandler struct {
+	service service.TransactionServiceInterface
 }
 
-func NewOrderHandler(service service.OrderServiceInterface) OrderHandlerInterface {
-	return &orderHandler{
+func NewTransactionHandler(service service.TransactionServiceInterface) TransactionHandlerInterface {
+	return &transactionHandler{
 		service: service,
 	}
 }
 
-func (handler *orderHandler) Insert() echo.HandlerFunc {
+func (handler *transactionHandler) Insert() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var orderInsert model.OrderInput
-		if err := c.Bind(&orderInsert); err != nil {
+		var transaction model.TransactionInput
+		if err := c.Bind(&transaction); err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
-		var stringToken = c.Request().Header.Get("Authorization")
-		if stringToken == "" {
-			return c.JSON(http.StatusUnauthorized, helper.FormatResponse("token not found", nil))
-		}
-
-		result, err := handler.service.Insert(orderInsert, stringToken)
+		result, err := handler.service.Insert(transaction)
 		if err != nil {
-			if strings.Contains(err.Error(), "invalid token") {
+			if strings.Contains(err.Error(), "validation failed") {
 				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
 			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusCreated, helper.FormatResponse("successfully make an order", result))
+		return c.JSON(http.StatusCreated, helper.FormatResponse("successfully create transaction", result))
 	}
 }
 
-func (handler *orderHandler) GetAll() echo.HandlerFunc {
+func (handler *transactionHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var pagination model.Pagination
+		var pagination model.QueryParam
 
 		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
 		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
@@ -69,11 +66,11 @@ func (handler *orderHandler) GetAll() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get all orders", result))
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get all transaction", result))
 	}
 }
 
-func (handler *orderHandler) GetByID() echo.HandlerFunc {
+func (handler *transactionHandler) GetByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -85,11 +82,11 @@ func (handler *orderHandler) GetByID() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get order by id", result))
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get transaction by id", result))
 	}
 }
 
-func (handler *orderHandler) Delete() echo.HandlerFunc {
+func (handler *transactionHandler) Delete() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
@@ -104,6 +101,23 @@ func (handler *orderHandler) Delete() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully deleted data", nil))
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully delete data", nil))
+	}
+}
+
+func (handler *transactionHandler) Notifications() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var notificationPayload map[string]any
+
+		if err := json.NewDecoder(c.Request().Body).Decode(&notificationPayload); err != nil {
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
+		}
+
+		err := handler.service.Notifications(notificationPayload)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
+		}
+
+		return c.JSON(http.StatusOK, echo.Map{"status": "ok"})
 	}
 }

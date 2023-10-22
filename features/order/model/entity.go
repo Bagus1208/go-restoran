@@ -1,27 +1,30 @@
 package model
 
 import (
+	"restoran/features/transaction/model"
 	"time"
 
 	"gorm.io/gorm"
 )
 
 type Order struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	NoTable   int            `json:"no_table"`
-	Orders    []OrderDetail  `gorm:"foreignKey:OrderID" json:"orders"`
-	Total     int            `json:"total"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	ID          uint              `gorm:"primaryKey; type:int"`
+	Transaction model.Transaction `gorm:"foreignKey:ID"`
+	NoTable     int               `gorm:"type:int"`
+	Orders      []OrderDetail     `gorm:"foreignKey:OrderID"`
+	Total       int               `gorm:"type:int"`
+	Status      string            `gorm:"type:varchar(10);default:'unpaid'"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
 }
 
 type OrderDetail struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	OrderID   int            `json:"order_id"`
-	MenuName  string         `json:"menu_name"`
-	Quantity  int            `json:"quantity"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	ID        uint `gorm:"primaryKey; type:int"`
+	OrderID   int  `gorm:"type:int"`
+	MenuID    int  `gorm:"type:int" json:"menu_id"`
+	Quantity  int  `gorm:"type:int" json:"quantity"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }

@@ -13,7 +13,7 @@ type OrderRepositoryInterface interface {
 	GetAll(pagination model.Pagination) ([]model.Order, error)
 	GetByID(id int) (*model.Order, error)
 	Delete(id int) error
-	FindMenu(menuNames []string) (bool, []int)
+	FindMenu(menuID []int) (bool, []int)
 }
 
 type orderRepo struct {
@@ -73,22 +73,22 @@ func (repository *orderRepo) Delete(id int) error {
 
 	if result.RowsAffected < 1 {
 		logrus.Error("Repository: Delete order error,", result.Error)
-		return errors.New("no rows affected")
+		return errors.New("data not found")
 	}
 
 	return nil
 }
 
-func (repository *orderRepo) FindMenu(menuNames []string) (bool, []int) {
+func (repository *orderRepo) FindMenu(menuID []int) (bool, []int) {
 	var price []int
 
-	result := repository.db.Select("price").Table("menus").Where("name IN ?", menuNames).Pluck("price", &price)
+	result := repository.db.Select("price").Table("menus").Where("id IN ?", menuID).Pluck("price", &price)
 	if result.Error != nil {
 		logrus.Error("Repository: Find menu error,", result.Error)
 		return false, nil
 	}
 
-	if len(price) == len(menuNames) {
+	if len(price) == len(menuID) {
 		return true, price
 	}
 

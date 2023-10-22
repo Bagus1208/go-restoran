@@ -13,3 +13,14 @@ func RequestToMenu(data model.MenuInput) *model.Menu {
 		Image:       data.Image,
 	}
 }
+
+func MenuToResponse(data *model.Menu) model.MenuResponse {
+	return model.MenuResponse{
+		ID:          data.ID,
+		Name:        data.Name,
+		Category:    data.Category,
+		Price:       data.Price,
+		Description: data.Description,
+		Image:       data.Image,
+	}
+}

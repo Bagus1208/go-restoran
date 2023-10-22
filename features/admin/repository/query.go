@@ -9,7 +9,7 @@ import (
 
 type AdminRepositoryInterface interface {
 	Insert(newData *model.Admin) (*model.Admin, error)
-	Login(email string, password string) (*model.Admin, error)
+	Login(email string) (*model.Admin, error)
 }
 
 type adminRepo struct {
@@ -32,9 +32,9 @@ func (repository *adminRepo) Insert(newData *model.Admin) (*model.Admin, error) 
 	return newData, nil
 }
 
-func (repository *adminRepo) Login(email string, password string) (*model.Admin, error) {
+func (repository *adminRepo) Login(email string) (*model.Admin, error) {
 	var admin = new(model.Admin)
-	result := repository.db.Where("email = ? and password = ?", email, password).First(admin)
+	result := repository.db.Where("email = ?", email).First(admin)
 	if result.Error != nil {
 		logrus.Error("Repository: Login error,", result.Error)
 		return nil, result.Error
