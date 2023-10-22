@@ -56,40 +56,44 @@ func (handler *menuHandler) Insert() echo.HandlerFunc {
 
 func (handler *menuHandler) GetData() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var pagination model.QueryParam
+		var queryParam model.QueryParam
 
-		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
-		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
-		pagination.Name = c.QueryParam("name")
-		pagination.Category = c.QueryParam("category")
+		queryParam.Page, _ = strconv.Atoi(c.QueryParam("page"))
+		queryParam.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
+		queryParam.Name = c.QueryParam("name")
+		queryParam.Category = c.QueryParam("category")
 
-		if pagination.Page < 1 || pagination.PageSize < 1 {
-			pagination.Page = 1
-			pagination.PageSize = 10
+		if queryParam.Page < 1 || queryParam.PageSize < 1 {
+			queryParam.Page = 1
+			queryParam.PageSize = 10
 		}
 
 		var result []model.MenuResponse
 		var err error
+		var message string
 
-		if pagination.Name != "" {
-			data, err := handler.service.GetByName(pagination.Name)
+		if queryParam.Name != "" {
+			data, err := handler.service.GetByName(queryParam.Name)
 			if err != nil {
 				return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 			}
 
-			return c.JSON(http.StatusOK, helper.FormatResponse("successfully get menu", data))
-		} else if pagination.Category != "" {
-			result, err = handler.service.GetCategory(pagination)
+			message := "successfully get menu: " + queryParam.Name
+
+			return c.JSON(http.StatusOK, helper.FormatResponse(message, data))
+		} else if queryParam.Category != "" {
+			result, err = handler.service.GetCategory(queryParam)
+			message = "successfully get menu by category: " + queryParam.Category
 		} else {
-			result, err = handler.service.GetAll(pagination)
+			result, err = handler.service.GetAll(queryParam)
+			message = "successfully get all menu"
 		}
 
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get all menu", result))
-
+		return c.JSON(http.StatusOK, helper.FormatResponse(message, result))
 	}
 }
 

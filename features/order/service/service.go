@@ -92,6 +92,7 @@ func (service *orderService) GetAll(pagination model.Pagination) ([]model.OrderR
 		for _, orderDetail := range order.Orders {
 			orderDetailResponse = append(orderDetailResponse, helper.OrderDetailToResponse(&orderDetail))
 		}
+
 		var orderResponse = helper.OrderToResponse(&order)
 		orderResponse.Orders = orderDetailResponse
 		orderResponseList = append(orderResponseList, orderResponse)

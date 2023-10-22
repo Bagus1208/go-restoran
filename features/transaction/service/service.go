@@ -7,8 +7,6 @@ import (
 	"restoran/helper"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/midtrans/midtrans-go/coreapi"
-	"github.com/midtrans/midtrans-go/snap"
 )
 
 type TransactionServiceInterface interface {
@@ -20,18 +18,14 @@ type TransactionServiceInterface interface {
 }
 
 type transactionService struct {
-	repository    repository.TransactionRepositoryInterface
-	validator     *validator.Validate
-	snapClient    snap.Client
-	coreAPIClient coreapi.Client
+	repository repository.TransactionRepositoryInterface
+	validator  *validator.Validate
 }
 
-func NewTransactionService(repo repository.TransactionRepositoryInterface, validate *validator.Validate, snapclient snap.Client, coreAPIClient coreapi.Client) TransactionServiceInterface {
+func NewTransactionService(repo repository.TransactionRepositoryInterface, validate *validator.Validate) TransactionServiceInterface {
 	return &transactionService{
-		repository:    repo,
-		validator:     validate,
-		snapClient:    snapclient,
-		coreAPIClient: coreAPIClient,
+		repository: repo,
+		validator:  validate,
 	}
 }
 
@@ -54,8 +48,8 @@ func (service *transactionService) Insert(newData model.TransactionInput) (*mode
 		return nil, errors.New("get data order failed")
 	}
 
-	snapResponse, _ := helper.CreateSnapRequest(service.snapClient, result.OrderID, int64(order.Total))
-	var transactionInputResponse = helper.TransactionToResponseInput(result, snapResponse.Token, snapResponse.RedirectURL)
+	token, redirectURL := service.repository.SnapRequest(result.OrderID, int64(order.Total))
+	var transactionInputResponse = helper.TransactionToResponseInput(result, token, redirectURL)
 
 	return transactionInputResponse, nil
 }
@@ -100,30 +94,26 @@ func (service *transactionService) Delete(id int) error {
 }
 
 func (service *transactionService) Notifications(notificationPayload map[string]any) error {
-	transactionID, exist := notificationPayload["order_id"].(string)
+	orderID, exist := notificationPayload["order_id"].(string)
 	if !exist {
 		return errors.New("invalid notification payload")
 	}
 
-	transactionStatusResp, err := service.coreAPIClient.CheckTransaction(transactionID)
+	status, err := service.repository.CheckTransaction(orderID)
 	if err != nil {
 		return err
-	} else {
-		if transactionStatusResp != nil {
-			var status = helper.TransactionStatus(transactionStatusResp)
+	}
 
-			transaction, _ := service.repository.GetByOrderID(transactionID)
+	transaction, _ := service.repository.GetByOrderID(orderID)
 
-			err := service.repository.UpdateStatusTransaction(int(transaction.ID), status.Transaction)
-			if err != nil {
-				return err
-			}
+	err = service.repository.UpdateStatusTransaction(transaction.ID, status.Transaction)
+	if err != nil {
+		return err
+	}
 
-			err = service.repository.UpdateStatusOrder(int(transaction.ID), status.Order)
-			if err != nil {
-				return err
-			}
-		}
+	err = service.repository.UpdateStatusOrder(transaction.ID, status.Order)
+	if err != nil {
+		return err
 	}
 
 	return nil

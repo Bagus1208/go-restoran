@@ -20,3 +20,10 @@ func AdminToResponse(data *model.Admin) *model.AdminResponse {
 		Password: data.Password,
 	}
 }
+
+func AdminToLoginResponse(data *model.Admin, token map[string]any) *model.UserCredential {
+	return &model.UserCredential{
+		Name:   data.Name,
+		Access: token,
+	}
+}

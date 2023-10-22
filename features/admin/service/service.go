@@ -71,9 +71,7 @@ func (service *adminService) Login(email string, password string) (*model.UserCr
 		return nil, errors.New("get token process failed")
 	}
 
-	var response = new(model.UserCredential)
-	response.Name = result.Name
-	response.Access = token
+	var response = helper.AdminToLoginResponse(result, token)
 
 	return response, nil
 }

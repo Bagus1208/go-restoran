@@ -54,8 +54,8 @@ func main() {
 	var orderService = orderService.NewOrderService(orderRepo, validate, jwt)
 	var orderHandler = orderHandler.NewOrderHandler(orderService)
 
-	var transactionRepo = transactionRepository.NewTransactionRepo(db)
-	var transactionService = transactionService.NewTransactionService(transactionRepo, validate, snapClient, coreAPIClient)
+	var transactionRepo = transactionRepository.NewTransactionRepo(db, snapClient, coreAPIClient)
+	var transactionService = transactionService.NewTransactionService(transactionRepo, validate)
 	var transactionHandler = transactionHandler.NewTransactionHandler(transactionService)
 
 	helper.LogMiddlewares(e)
