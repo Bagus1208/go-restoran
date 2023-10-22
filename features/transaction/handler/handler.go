@@ -6,6 +6,7 @@ import (
 	"restoran/features/transaction/model"
 	"restoran/features/transaction/service"
 	"restoran/helper"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -50,7 +51,17 @@ func (handler *transactionHandler) Insert() echo.HandlerFunc {
 
 func (handler *transactionHandler) GetAll() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		result, err := handler.service.GetAll()
+		var pagination model.QueryParam
+
+		pagination.Page, _ = strconv.Atoi(c.QueryParam("page"))
+		pagination.PageSize, _ = strconv.Atoi(c.QueryParam("page_size"))
+
+		if pagination.Page < 1 || pagination.PageSize < 1 {
+			pagination.Page = 1
+			pagination.PageSize = 10
+		}
+
+		result, err := handler.service.GetAll(pagination)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
@@ -61,8 +72,8 @@ func (handler *transactionHandler) GetAll() echo.HandlerFunc {
 
 func (handler *transactionHandler) GetByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var id = c.Param("id")
-		if id == "" {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("id is required", nil))
 		}
 
@@ -77,12 +88,12 @@ func (handler *transactionHandler) GetByID() echo.HandlerFunc {
 
 func (handler *transactionHandler) Delete() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var id = c.Param("id")
-		if id == "" {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("id is required", nil))
 		}
 
-		err := handler.service.Delete(id)
+		err = handler.service.Delete(id)
 		if err != nil {
 			if strings.Contains(err.Error(), "data not found") {
 				return c.JSON(http.StatusNotFound, helper.FormatResponse(err.Error(), nil))
@@ -107,6 +118,6 @@ func (handler *transactionHandler) Notifications() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully", nil))
+		return c.JSON(http.StatusOK, echo.Map{"status": "ok"})
 	}
 }

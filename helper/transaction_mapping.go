@@ -4,7 +4,7 @@ import "restoran/features/transaction/model"
 
 func RequestToTransaction(data model.TransactionInput) *model.Transaction {
 	return &model.Transaction{
-		OrderID: data.OrderID,
+		ID: data.OrderID,
 	}
 }
 

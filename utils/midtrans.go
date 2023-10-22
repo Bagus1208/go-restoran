@@ -9,9 +9,6 @@ import (
 )
 
 func MidtransSnapClient(config config.Config) snap.Client {
-	// midtrans.ServerKey = config.MT_Server_Key
-	// midtrans.Environment = midtrans.Sandbox
-
 	var snapClient snap.Client
 	snapClient.New(config.MT_Server_Key, midtrans.Sandbox)
 

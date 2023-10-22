@@ -1,12 +1,19 @@
 package model
 
-import "restoran/features/order/model"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Transaction struct {
-	ID      string      `gorm:"primaryKey;type:varchar(255)"`
-	OrderID uint        `gorm:"type:int; not null"`
-	Order   model.Order `gorm:"foreignKey:OrderID"`
-	Status  string      `gorm:"type:varchar(20);default:'pending'"`
+	ID uint `gorm:"primaryKey;type: int"`
+	// Order     model.Order `gorm:"foreignKey:ID"`
+	OrderID   string `gorm:"type:varchar(255); not null"`
+	Status    string `gorm:"type:varchar(20);default:'pending'"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 type Status struct {

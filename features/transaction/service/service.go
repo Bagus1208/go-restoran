@@ -13,9 +13,9 @@ import (
 
 type TransactionServiceInterface interface {
 	Insert(newData model.TransactionInput) (*model.TransactionInputResponse, error)
-	GetAll() ([]model.TransactionResponse, error)
-	GetByID(id string) (*model.TransactionResponse, error)
-	Delete(id string) error
+	GetAll(pagination model.QueryParam) ([]model.TransactionResponse, error)
+	GetByID(id int) (*model.TransactionResponse, error)
+	Delete(id int) error
 	Notifications(notificationPayload map[string]any) error
 }
 
@@ -42,26 +42,30 @@ func (service *transactionService) Insert(newData model.TransactionInput) (*mode
 	}
 
 	var newTransaction = helper.RequestToTransaction(newData)
-	newTransaction.ID = helper.GenerateUUID()
+	newTransaction.OrderID = helper.GenerateUUID()
 
 	result, err := service.repository.Insert(newTransaction)
 	if err != nil {
 		return nil, errors.New("insert data transaction failed")
 	}
 
-	order, err := service.repository.GetOrder(result.OrderID)
+	order, err := service.repository.GetOrder(int(result.ID))
 	if err != nil {
 		return nil, errors.New("get data order failed")
 	}
 
-	snapResponse, _ := helper.CreateSnapRequest(service.snapClient, result.ID, int64(order.Total))
+	snapResponse, _ := helper.CreateSnapRequest(service.snapClient, result.OrderID, int64(order.Total))
 	var transactionInputResponse = helper.TransactionToResponseInput(result, snapResponse.Token, snapResponse.RedirectURL)
 
 	return transactionInputResponse, nil
 }
 
-func (service *transactionService) GetAll() ([]model.TransactionResponse, error) {
-	result, err := service.repository.GetAll()
+func (service *transactionService) GetAll(pagination model.QueryParam) ([]model.TransactionResponse, error) {
+	if pagination.Page <= 0 || pagination.PageSize <= 0 {
+		return nil, errors.New("invalid page and page_size value")
+	}
+
+	result, err := service.repository.GetAll(pagination)
 	if err != nil {
 		return nil, errors.New("get data transaction failed")
 	}
@@ -75,7 +79,7 @@ func (service *transactionService) GetAll() ([]model.TransactionResponse, error)
 	return transactionResponse, nil
 }
 
-func (service *transactionService) GetByID(id string) (*model.TransactionResponse, error) {
+func (service *transactionService) GetByID(id int) (*model.TransactionResponse, error) {
 	result, err := service.repository.GetByID(id)
 	if err != nil {
 		return nil, errors.New("get data transaction by id failed")
@@ -86,7 +90,7 @@ func (service *transactionService) GetByID(id string) (*model.TransactionRespons
 	return transactionResponse, nil
 }
 
-func (service *transactionService) Delete(id string) error {
+func (service *transactionService) Delete(id int) error {
 	err := service.repository.Delete(id)
 	if err != nil {
 		return err
@@ -108,14 +112,14 @@ func (service *transactionService) Notifications(notificationPayload map[string]
 		if transactionStatusResp != nil {
 			var status = helper.TransactionStatus(transactionStatusResp)
 
-			transaction, _ := service.repository.GetByID(transactionID)
+			transaction, _ := service.repository.GetByOrderID(transactionID)
 
-			err := service.repository.UpdateStatusTransaction(transactionID, status.Transaction)
+			err := service.repository.UpdateStatusTransaction(int(transaction.ID), status.Transaction)
 			if err != nil {
 				return err
 			}
 
-			err = service.repository.UpdateStatusOrder(transaction.OrderID, status.Order)
+			err = service.repository.UpdateStatusOrder(int(transaction.ID), status.Order)
 			if err != nil {
 				return err
 			}
