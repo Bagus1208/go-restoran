@@ -11,5 +11,5 @@ type OrderResponse struct {
 type OrderDetailResponse struct {
 	ID       uint `json:"id"`
 	MenuID   int  `json:"menu_id"`
-	Quantity int  `gorm:"type:int" json:"quantity"`
+	Quantity int  `json:"quantity"`
 }

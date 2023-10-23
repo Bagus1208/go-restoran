@@ -32,12 +32,13 @@ func NewTransactionHandler(service service.TransactionServiceInterface) Transact
 
 func (handler *transactionHandler) Insert() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var transaction model.TransactionInput
-		if err := c.Bind(&transaction); err != nil {
+		var transactionInput model.TransactionInput
+
+		if err := c.Bind(&transactionInput); err != nil {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
-		result, err := handler.service.Insert(transaction)
+		result, err := handler.service.Insert(transactionInput)
 		if err != nil {
 			if strings.Contains(err.Error(), "validation failed") {
 				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))

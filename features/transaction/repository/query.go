@@ -3,7 +3,10 @@ package repository
 import (
 	"errors"
 	"restoran/features/transaction/model"
+	"restoran/helper"
 
+	"github.com/midtrans/midtrans-go/coreapi"
+	"github.com/midtrans/midtrans-go/snap"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -15,17 +18,23 @@ type TransactionRepositoryInterface interface {
 	GetByOrderID(orderID string) (*model.Transaction, error)
 	Delete(id int) error
 	GetOrder(id int) (*model.Order, error)
-	UpdateStatusTransaction(id int, status string) error
-	UpdateStatusOrder(id int, status string) error
+	SnapRequest(orderID string, total int64) (string, string)
+	CheckTransaction(orderID string) (model.Status, error)
+	UpdateStatusTransaction(id uint, status string) error
+	UpdateStatusOrder(id uint, status string) error
 }
 
 type transactionRepo struct {
-	db *gorm.DB
+	db            *gorm.DB
+	snapClient    snap.Client
+	coreAPIClient coreapi.Client
 }
 
-func NewTransactionRepo(DB *gorm.DB) TransactionRepositoryInterface {
+func NewTransactionRepo(DB *gorm.DB, snapClient snap.Client, coreAPIClient coreapi.Client) TransactionRepositoryInterface {
 	return &transactionRepo{
-		db: DB,
+		db:            DB,
+		snapClient:    snapClient,
+		coreAPIClient: coreAPIClient,
 	}
 }
 
@@ -108,7 +117,32 @@ func (repository *transactionRepo) GetOrder(id int) (*model.Order, error) {
 	return &order, nil
 }
 
-func (repository *transactionRepo) UpdateStatusTransaction(id int, status string) error {
+func (repository *transactionRepo) SnapRequest(orderID string, total int64) (string, string) {
+	snapResponse, err := helper.CreateSnapRequest(repository.snapClient, orderID, total)
+	if err != nil {
+		return "", ""
+	}
+
+	return snapResponse.Token, snapResponse.RedirectURL
+}
+
+func (repository *transactionRepo) CheckTransaction(orderID string) (model.Status, error) {
+	var status model.Status
+
+	transactionStatusResp, err := repository.coreAPIClient.CheckTransaction(orderID)
+	if err != nil {
+		return model.Status{}, err
+	} else {
+		if transactionStatusResp != nil {
+			status = helper.TransactionStatus(transactionStatusResp)
+			return status, nil
+		}
+	}
+
+	return model.Status{}, err
+}
+
+func (repository *transactionRepo) UpdateStatusTransaction(id uint, status string) error {
 	result := repository.db.Table("transactions").Where("id = ?", id).Update("status", status)
 	if result.Error != nil {
 		logrus.Error("Repository: Update transaction status error,", result.Error)
@@ -123,7 +157,7 @@ func (repository *transactionRepo) UpdateStatusTransaction(id int, status string
 	return nil
 }
 
-func (repository *transactionRepo) UpdateStatusOrder(id int, status string) error {
+func (repository *transactionRepo) UpdateStatusOrder(id uint, status string) error {
 	result := repository.db.Table("orders").Where("id = ?", id).Update("status", status)
 	if result.Error != nil {
 		logrus.Error("Repository: Update order status error,", result.Error)
