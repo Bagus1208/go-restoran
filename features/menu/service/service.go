@@ -16,7 +16,7 @@ type MenuServiceInterface interface {
 	GetAll(pagination model.QueryParam) ([]model.MenuResponse, error)
 	GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, error)
 	GetFavorite() ([]model.Favorite, error)
-	GetByName(name string) (model.MenuResponse, error)
+	GetByName(name string) (*model.MenuResponse, error)
 	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error)
 	Delete(id int) error
 }
@@ -44,10 +44,9 @@ func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData mod
 		return nil, errors.New("menu already exists")
 	}
 
-	file := helper.OpenFileHeader(fileHeader)
-	urlImage, err := service.repository.UploadImage(file, newData.Name)
+	urlImage, err := service.repository.UploadImage(fileHeader, newData.Name)
 	if err != nil {
-		return nil, errors.New("cannot upload image: " + err.Error())
+		return nil, errors.New("upload image failed")
 	}
 
 	newData.Image = urlImage
@@ -64,10 +63,6 @@ func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData mod
 }
 
 func (service *menuService) GetAll(pagination model.QueryParam) ([]model.MenuResponse, error) {
-	if pagination.Page <= 0 || pagination.PageSize <= 0 {
-		return nil, errors.New("invalid page and page_size value")
-	}
-
 	result, err := service.repository.GetAll(pagination)
 	if err != nil {
 		return nil, errors.New("get data menu failed")
@@ -83,10 +78,6 @@ func (service *menuService) GetAll(pagination model.QueryParam) ([]model.MenuRes
 }
 
 func (service *menuService) GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, error) {
-	if queryParam.Page <= 0 || queryParam.PageSize <= 0 {
-		return nil, errors.New("invalid page and page_size value")
-	}
-
 	result, err := service.repository.GetCategory(queryParam)
 	if err != nil {
 		logrus.Error("Service: Get data by category failed,", err)
@@ -111,15 +102,15 @@ func (service *menuService) GetFavorite() ([]model.Favorite, error) {
 	return result, nil
 }
 
-func (service *menuService) GetByName(name string) (model.MenuResponse, error) {
+func (service *menuService) GetByName(name string) (*model.MenuResponse, error) {
 	result := service.repository.GetByName(name)
 	if result == nil {
-		return model.MenuResponse{}, errors.New("menu not found")
+		return nil, errors.New("menu not found")
 	}
 
 	var menuResponse = helper.MenuToResponse(result)
 
-	return menuResponse, nil
+	return &menuResponse, nil
 }
 
 func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error) {
@@ -128,11 +119,10 @@ func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, upd
 		return nil, errors.New("validation failed please check your input and try again")
 	}
 
-	var file = helper.OpenFileHeader(fileHeader)
-	urlImage, err := service.repository.UploadImage(file, updateData.Name)
+	urlImage, err := service.repository.UploadImage(fileHeader, updateData.Name)
 	if err != nil {
 		logrus.Error("Service: Upload image failed,", err)
-		return nil, errors.New("cannot upload image: " + err.Error())
+		return nil, errors.New("cannot upload image")
 	}
 
 	updateData.Image = urlImage
@@ -141,7 +131,7 @@ func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, upd
 	result, err := service.repository.Update(id, updateMenu)
 	if err != nil {
 		logrus.Error("Service: Update data failed: ", err)
-		return nil, errors.New("cannot update data: " + err.Error())
+		return nil, errors.New("cannot update data")
 	}
 
 	var menuResponse = helper.MenuToResponse(result)

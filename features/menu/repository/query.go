@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"restoran/config"
 	"restoran/features/menu/model"
+	"restoran/helper"
 	"time"
 
 	"github.com/cloudinary/cloudinary-go"
@@ -22,7 +23,7 @@ type MenuRepositoryInterface interface {
 	GetByName(name string) *model.Menu
 	Update(id int, updateData *model.Menu) (*model.Menu, error)
 	Delete(id int) error
-	UploadImage(file multipart.File, name string) (string, error)
+	UploadImage(fileHeader *multipart.FileHeader, name string) (string, error)
 }
 
 type menuRepo struct {
@@ -139,7 +140,9 @@ func (repository *menuRepo) Delete(id int) error {
 	return nil
 }
 
-func (repository *menuRepo) UploadImage(file multipart.File, name string) (string, error) {
+func (repository *menuRepo) UploadImage(fileHeader *multipart.FileHeader, name string) (string, error) {
+	var file = helper.OpenFileHeader(fileHeader)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
