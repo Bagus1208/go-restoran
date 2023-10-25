@@ -20,12 +20,16 @@ type TransactionServiceInterface interface {
 type transactionService struct {
 	repository repository.TransactionRepositoryInterface
 	validator  *validator.Validate
+	generate   helper.GeneratorInterface
 }
 
-func NewTransactionService(repo repository.TransactionRepositoryInterface, validate *validator.Validate) TransactionServiceInterface {
+func NewTransactionService(repo repository.TransactionRepositoryInterface,
+	validate *validator.Validate,
+	generator helper.GeneratorInterface) TransactionServiceInterface {
 	return &transactionService{
 		repository: repo,
 		validator:  validate,
+		generate:   generator,
 	}
 }
 
@@ -36,7 +40,10 @@ func (service *transactionService) Insert(newData model.TransactionInput) (*mode
 	}
 
 	var newTransaction = helper.RequestToTransaction(newData)
-	newTransaction.OrderID = helper.GenerateUUID()
+	newTransaction.OrderID, err = service.generate.GenerateUUID()
+	if err != nil {
+		return nil, errors.New("order id generator failed")
+	}
 
 	result, err := service.repository.Insert(newTransaction)
 	if err != nil {
