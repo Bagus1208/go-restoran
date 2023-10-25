@@ -2,8 +2,21 @@ package helper
 
 import "github.com/google/uuid"
 
-func GenerateUUID() string {
-	var result = uuid.NewString()
+type GeneratorInterface interface {
+	GenerateUUID() (string, error)
+}
 
-	return result
+type generator struct{}
+
+func NewGenerator() GeneratorInterface {
+	return &generator{}
+}
+
+func (generate generator) GenerateUUID() (string, error) {
+	result, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+
+	return result.String(), nil
 }

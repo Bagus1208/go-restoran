@@ -71,7 +71,7 @@ func (handler *adminHandler) SetNoTable() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
-		result, err := handler.service.SetNoTable(setTable.NoTable, setTable.Email, setTable.Password)
+		result, err := handler.service.SetNoTable(setTable)
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				return c.JSON(http.StatusNotFound, helper.FormatResponse("user admin not found", nil))
