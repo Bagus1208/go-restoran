@@ -30,12 +30,13 @@ func (_m *MenuServiceInterface) Delete(id int) error {
 }
 
 // GetAll provides a mock function with given fields: pagination
-func (_m *MenuServiceInterface) GetAll(pagination model.QueryParam) ([]model.MenuResponse, error) {
+func (_m *MenuServiceInterface) GetAll(pagination model.QueryParam) ([]model.MenuResponse, *model.Pagination, error) {
 	ret := _m.Called(pagination)
 
 	var r0 []model.MenuResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(model.QueryParam) ([]model.MenuResponse, error)); ok {
+	var r1 *model.Pagination
+	var r2 error
+	if rf, ok := ret.Get(0).(func(model.QueryParam) ([]model.MenuResponse, *model.Pagination, error)); ok {
 		return rf(pagination)
 	}
 	if rf, ok := ret.Get(0).(func(model.QueryParam) []model.MenuResponse); ok {
@@ -46,28 +47,38 @@ func (_m *MenuServiceInterface) GetAll(pagination model.QueryParam) ([]model.Men
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.QueryParam) error); ok {
+	if rf, ok := ret.Get(1).(func(model.QueryParam) *model.Pagination); ok {
 		r1 = rf(pagination)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.Pagination)
+		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(model.QueryParam) error); ok {
+		r2 = rf(pagination)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // GetByName provides a mock function with given fields: name
-func (_m *MenuServiceInterface) GetByName(name string) (model.MenuResponse, error) {
+func (_m *MenuServiceInterface) GetByName(name string) (*model.MenuResponse, error) {
 	ret := _m.Called(name)
 
-	var r0 model.MenuResponse
+	var r0 *model.MenuResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (model.MenuResponse, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) (*model.MenuResponse, error)); ok {
 		return rf(name)
 	}
-	if rf, ok := ret.Get(0).(func(string) model.MenuResponse); ok {
+	if rf, ok := ret.Get(0).(func(string) *model.MenuResponse); ok {
 		r0 = rf(name)
 	} else {
-		r0 = ret.Get(0).(model.MenuResponse)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.MenuResponse)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
@@ -80,12 +91,13 @@ func (_m *MenuServiceInterface) GetByName(name string) (model.MenuResponse, erro
 }
 
 // GetCategory provides a mock function with given fields: queryParam
-func (_m *MenuServiceInterface) GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, error) {
+func (_m *MenuServiceInterface) GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, *model.Pagination, error) {
 	ret := _m.Called(queryParam)
 
 	var r0 []model.MenuResponse
-	var r1 error
-	if rf, ok := ret.Get(0).(func(model.QueryParam) ([]model.MenuResponse, error)); ok {
+	var r1 *model.Pagination
+	var r2 error
+	if rf, ok := ret.Get(0).(func(model.QueryParam) ([]model.MenuResponse, *model.Pagination, error)); ok {
 		return rf(queryParam)
 	}
 	if rf, ok := ret.Get(0).(func(model.QueryParam) []model.MenuResponse); ok {
@@ -96,13 +108,21 @@ func (_m *MenuServiceInterface) GetCategory(queryParam model.QueryParam) ([]mode
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.QueryParam) error); ok {
+	if rf, ok := ret.Get(1).(func(model.QueryParam) *model.Pagination); ok {
 		r1 = rf(queryParam)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.Pagination)
+		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(model.QueryParam) error); ok {
+		r2 = rf(queryParam)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // GetFavorite provides a mock function with given fields:

@@ -24,6 +24,8 @@ type MenuRepositoryInterface interface {
 	Update(id int, updateData *model.Menu) (*model.Menu, error)
 	Delete(id int) error
 	UploadImage(fileHeader *multipart.FileHeader, name string) (string, error)
+	TotalData() (int64, error)
+	TotalDataByCategory(category string) (int64, error)
 }
 
 type menuRepo struct {
@@ -156,4 +158,26 @@ func (repository *menuRepo) UploadImage(fileHeader *multipart.FileHeader, name s
 	}
 
 	return response.SecureURL, nil
+}
+
+func (repository *menuRepo) TotalData() (int64, error) {
+	var total int64
+
+	result := repository.db.Table("menus").Where("deleted_at IS NULL").Count(&total)
+	if result.Error != nil {
+		return -1, result.Error
+	}
+
+	return total, nil
+}
+
+func (repository *menuRepo) TotalDataByCategory(category string) (int64, error) {
+	var total int64
+
+	result := repository.db.Table("menus").Where("category = ? AND deleted_at IS NULL", category).Count(&total)
+	if result.Error != nil {
+		return -1, result.Error
+	}
+
+	return total, nil
 }

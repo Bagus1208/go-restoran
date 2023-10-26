@@ -13,8 +13,8 @@ import (
 
 type MenuServiceInterface interface {
 	Insert(fileHeader *multipart.FileHeader, newData model.MenuInput) (*model.MenuResponse, error)
-	GetAll(pagination model.QueryParam) ([]model.MenuResponse, error)
-	GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, error)
+	GetAll(pagination model.QueryParam) ([]model.MenuResponse, *model.Pagination, error)
+	GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, *model.Pagination, error)
 	GetFavorite() ([]model.Favorite, error)
 	GetByName(name string) (*model.MenuResponse, error)
 	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error)
@@ -62,10 +62,10 @@ func (service *menuService) Insert(fileHeader *multipart.FileHeader, newData mod
 	return &menuResponse, nil
 }
 
-func (service *menuService) GetAll(pagination model.QueryParam) ([]model.MenuResponse, error) {
+func (service *menuService) GetAll(pagination model.QueryParam) ([]model.MenuResponse, *model.Pagination, error) {
 	result, err := service.repository.GetAll(pagination)
 	if err != nil {
-		return nil, errors.New("get data menu failed")
+		return nil, nil, errors.New("get data menu failed")
 	}
 
 	var menuResponse []model.MenuResponse
@@ -74,14 +74,21 @@ func (service *menuService) GetAll(pagination model.QueryParam) ([]model.MenuRes
 		menuResponse = append(menuResponse, helper.MenuToResponse(&menu))
 	}
 
-	return menuResponse, nil
+	total, err := service.repository.TotalData()
+	if err != nil {
+		return nil, nil, errors.New("get total menu failed")
+	}
+
+	var paginationResponse = helper.QueryParamToPagination(pagination, total)
+
+	return menuResponse, paginationResponse, nil
 }
 
-func (service *menuService) GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, error) {
+func (service *menuService) GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, *model.Pagination, error) {
 	result, err := service.repository.GetCategory(queryParam)
 	if err != nil {
 		logrus.Error("Service: Get data by category failed,", err)
-		return nil, errors.New("get data menu by category failed")
+		return nil, nil, errors.New("get data menu by category failed")
 	}
 
 	var menuResponse []model.MenuResponse
@@ -89,7 +96,14 @@ func (service *menuService) GetCategory(queryParam model.QueryParam) ([]model.Me
 		menuResponse = append(menuResponse, helper.MenuToResponse(&menu))
 	}
 
-	return menuResponse, nil
+	total, err := service.repository.TotalDataByCategory(queryParam.Category)
+	if err != nil {
+		return nil, nil, errors.New("get total menu by category failed")
+	}
+
+	var paginationResponse = helper.QueryParamToPagination(queryParam, total)
+
+	return menuResponse, paginationResponse, nil
 }
 
 func (service *menuService) GetFavorite() ([]model.Favorite, error) {
