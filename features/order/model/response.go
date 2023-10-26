@@ -1,11 +1,11 @@
 package model
 
 type OrderResponse struct {
-	ID      uint                  `json:"id"`
-	NoTable int                   `json:"no_table"`
-	Orders  []OrderDetailResponse `json:"orders"`
-	Total   int                   `json:"total"`
-	Status  string                `json:"status"`
+	ID          uint                  `json:"id"`
+	TableNumber int                   `json:"table_number"`
+	Orders      []OrderDetailResponse `json:"orders"`
+	Total       int                   `json:"total"`
+	Status      string                `json:"status"`
 }
 
 type OrderDetailResponse struct {

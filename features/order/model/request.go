@@ -1,8 +1,8 @@
 package model
 
 type OrderInput struct {
-	Orders  []OrderDetail `json:"orders" form:"orders" validate:"required"`
-	NoTable int           `json:"no_table" form:"no_table" validate:"required"`
+	Orders      []OrderDetail `json:"orders" form:"orders" validate:"required"`
+	TableNumber int           `json:"table_number" form:"table_number" validate:"required"`
 }
 
 type Pagination struct {

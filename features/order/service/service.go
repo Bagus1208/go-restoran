@@ -36,7 +36,7 @@ func (service *orderService) Insert(newData model.OrderInput, stringToken string
 		return nil, err
 	}
 
-	newData.NoTable = noTable
+	newData.TableNumber = noTable
 	err = service.validator.Struct(newData)
 	if err != nil {
 		return nil, errors.New("validation failed please check your input and try again")

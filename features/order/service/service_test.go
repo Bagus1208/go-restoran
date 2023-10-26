@@ -30,8 +30,8 @@ func TestInsert(t *testing.T) {
 	var invalidData = model.OrderInput{}
 
 	var order = model.Order{
-		ID:      1,
-		NoTable: 1,
+		ID:          1,
+		TableNumber: 1,
 		Orders: []model.OrderDetail{
 			{
 				ID:       1,
@@ -48,9 +48,9 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Success insert data", func(t *testing.T) {
 		var newOrder = helper.RequestToOrder(newData, 10000)
-		newOrder.NoTable = 1
+		newOrder.TableNumber = 1
 
-		jwt.On("ExtractToken", tokenString).Return(order.NoTable, nil).Once()
+		jwt.On("ExtractToken", tokenString).Return(order.TableNumber, nil).Once()
 		repository.On("FindMenu", menuID).Return(true, []int{2000}).Once()
 		repository.On("Insert", newOrder).Return(&order, nil).Once()
 
@@ -73,7 +73,7 @@ func TestInsert(t *testing.T) {
 	})
 
 	t.Run("Validation failed", func(t *testing.T) {
-		jwt.On("ExtractToken", tokenString).Return(order.NoTable, nil).Once()
+		jwt.On("ExtractToken", tokenString).Return(order.TableNumber, nil).Once()
 
 		result, err := service.Insert(invalidData, tokenString)
 
@@ -84,7 +84,7 @@ func TestInsert(t *testing.T) {
 	})
 
 	t.Run("Find menu failed", func(t *testing.T) {
-		jwt.On("ExtractToken", tokenString).Return(order.NoTable, nil).Once()
+		jwt.On("ExtractToken", tokenString).Return(order.TableNumber, nil).Once()
 		repository.On("FindMenu", menuID).Return(false, nil).Once()
 
 		result, err := service.Insert(newData, tokenString)
@@ -96,9 +96,9 @@ func TestInsert(t *testing.T) {
 
 	t.Run("Insert data failed", func(t *testing.T) {
 		var newOrder = helper.RequestToOrder(newData, 10000)
-		newOrder.NoTable = 1
+		newOrder.TableNumber = 1
 
-		jwt.On("ExtractToken", tokenString).Return(order.NoTable, nil).Once()
+		jwt.On("ExtractToken", tokenString).Return(order.TableNumber, nil).Once()
 		repository.On("FindMenu", menuID).Return(true, []int{2000}).Once()
 		repository.On("Insert", newOrder).Return(nil, errors.New("insert data failed")).Once()
 
@@ -123,8 +123,8 @@ func TestGetAll(t *testing.T) {
 
 	var orderList = []model.Order{
 		{
-			ID:      1,
-			NoTable: 1,
+			ID:          1,
+			TableNumber: 1,
 			Orders: []model.OrderDetail{
 				{
 					ID:       1,
@@ -136,8 +136,8 @@ func TestGetAll(t *testing.T) {
 			Status: "unpaid",
 		},
 		{
-			ID:      2,
-			NoTable: 2,
+			ID:          2,
+			TableNumber: 2,
 			Orders: []model.OrderDetail{
 				{
 					ID:       2,
@@ -178,8 +178,8 @@ func TestGetByID(t *testing.T) {
 	var service = NewOrderService(repository, validate, jwt)
 
 	var order = model.Order{
-		ID:      1,
-		NoTable: 1,
+		ID:          1,
+		TableNumber: 1,
 		Orders: []model.OrderDetail{
 			{
 				ID:       1,

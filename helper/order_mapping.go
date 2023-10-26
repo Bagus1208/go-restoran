@@ -4,18 +4,18 @@ import "restoran/features/order/model"
 
 func RequestToOrder(data model.OrderInput, total int) *model.Order {
 	return &model.Order{
-		NoTable: data.NoTable,
-		Orders:  data.Orders,
-		Total:   total,
+		TableNumber: data.TableNumber,
+		Orders:      data.Orders,
+		Total:       total,
 	}
 }
 
 func OrderToResponse(data *model.Order) model.OrderResponse {
 	return model.OrderResponse{
-		ID:      data.ID,
-		NoTable: data.NoTable,
-		Total:   data.Total,
-		Status:  data.Status,
+		ID:          data.ID,
+		TableNumber: data.TableNumber,
+		Total:       data.Total,
+		Status:      data.Status,
 	}
 }
 
