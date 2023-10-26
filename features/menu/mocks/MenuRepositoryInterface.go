@@ -149,6 +149,54 @@ func (_m *MenuRepositoryInterface) Insert(newData *model.Menu) (*model.Menu, err
 	return r0, r1
 }
 
+// TotalData provides a mock function with given fields:
+func (_m *MenuRepositoryInterface) TotalData() (int64, error) {
+	ret := _m.Called()
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (int64, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TotalDataByCategory provides a mock function with given fields: category
+func (_m *MenuRepositoryInterface) TotalDataByCategory(category string) (int64, error) {
+	ret := _m.Called(category)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(category)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(category)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(category)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Update provides a mock function with given fields: id, updateData
 func (_m *MenuRepositoryInterface) Update(id int, updateData *model.Menu) (*model.Menu, error) {
 	ret := _m.Called(id, updateData)

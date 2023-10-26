@@ -69,6 +69,7 @@ func (handler *menuHandler) GetData() echo.HandlerFunc {
 		}
 
 		var result []model.MenuResponse
+		var paginationResponse *model.Pagination
 		var err error
 		var message string
 
@@ -82,10 +83,10 @@ func (handler *menuHandler) GetData() echo.HandlerFunc {
 
 			return c.JSON(http.StatusOK, helper.FormatResponse(message, data))
 		} else if queryParam.Category != "" {
-			result, err = handler.service.GetCategory(queryParam)
+			result, paginationResponse, err = handler.service.GetCategory(queryParam)
 			message = "successfully get menu by category: " + queryParam.Category
 		} else {
-			result, err = handler.service.GetAll(queryParam)
+			result, paginationResponse, err = handler.service.GetAll(queryParam)
 			message = "successfully get all menu"
 		}
 
@@ -93,7 +94,7 @@ func (handler *menuHandler) GetData() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse(message, result))
+		return c.JSON(http.StatusOK, helper.FormatPaginationResponse(message, result, paginationResponse))
 	}
 }
 

@@ -108,6 +108,12 @@ func TestGetAll(t *testing.T) {
 		PageSize: 2,
 	}
 
+	var paginationDetail = model.Pagination{
+		Page:       1,
+		PageSize:   2,
+		TotalItems: 10,
+	}
+
 	var listMenu = []model.Menu{
 		{
 			ID:          1,
@@ -129,23 +135,40 @@ func TestGetAll(t *testing.T) {
 
 	t.Run("Success get data", func(t *testing.T) {
 		repository.On("GetAll", pagination).Return(listMenu, nil).Once()
+		repository.On("TotalData").Return(paginationDetail.TotalItems, nil).Once()
 
-		result, err := service.GetAll(pagination)
+		result, paginationResponse, err := service.GetAll(pagination)
 		assert.Nil(t, err)
 		assert.Equal(t, len(listMenu), len(result))
 		assert.Equal(t, listMenu[0].Name, result[0].Name)
+		assert.Equal(t, paginationDetail.TotalItems, paginationResponse.TotalItems)
 		repository.AssertExpectations(t)
 	})
 
 	t.Run("Get data failed", func(t *testing.T) {
 		repository.On("GetAll", pagination).Return(nil, errors.New("get data error")).Once()
 
-		result, err := service.GetAll(pagination)
+		result, paginationResponse, err := service.GetAll(pagination)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "get data menu failed")
 		assert.Nil(t, result)
+		assert.Nil(t, paginationResponse)
 		repository.AssertExpectations(t)
 	})
+
+	t.Run("Get total data failed", func(t *testing.T) {
+		repository.On("GetAll", pagination).Return(listMenu, nil).Once()
+		repository.On("TotalData").Return(int64(-1), errors.New("get total data errors")).Once()
+
+		result, paginationResponse, err := service.GetAll(pagination)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "get total menu failed")
+		assert.Nil(t, result)
+		assert.Nil(t, paginationResponse)
+		repository.AssertExpectations(t)
+
+	})
+
 }
 
 func TestGetCategory(t *testing.T) {
@@ -156,6 +179,13 @@ func TestGetCategory(t *testing.T) {
 	var pagination = model.QueryParam{
 		Page:     1,
 		PageSize: 2,
+		Category: "makanan",
+	}
+
+	var paginationDetail = model.Pagination{
+		Page:       1,
+		PageSize:   2,
+		TotalItems: 10,
 	}
 
 	var listMenu = []model.Menu{
@@ -179,21 +209,36 @@ func TestGetCategory(t *testing.T) {
 
 	t.Run("Succcess get data by category", func(t *testing.T) {
 		repository.On("GetCategory", pagination).Return(listMenu, nil).Once()
+		repository.On("TotalDataByCategory", pagination.Category).Return(paginationDetail.TotalItems, nil).Once()
 
-		result, err := service.GetCategory(pagination)
+		result, paginationResponse, err := service.GetCategory(pagination)
 		assert.Nil(t, err)
 		assert.Equal(t, len(listMenu), len(result))
 		assert.Equal(t, listMenu[0].Category, result[0].Category)
+		assert.Equal(t, paginationDetail.TotalItems, paginationResponse.TotalItems)
 		repository.AssertExpectations(t)
 	})
 
 	t.Run("Get data by category failed", func(t *testing.T) {
 		repository.On("GetCategory", pagination).Return(nil, errors.New("get data error")).Once()
 
-		result, err := service.GetCategory(pagination)
+		result, paginationResponse, err := service.GetCategory(pagination)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "get data menu by category failed")
 		assert.Nil(t, result)
+		assert.Nil(t, paginationResponse)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("get total data by category failed", func(t *testing.T) {
+		repository.On("GetCategory", pagination).Return(listMenu, nil).Once()
+		repository.On("TotalDataByCategory", pagination.Category).Return(int64(-1), errors.New("get total error")).Once()
+
+		result, paginationResponse, err := service.GetCategory(pagination)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "get total menu by category failed")
+		assert.Nil(t, result)
+		assert.Nil(t, paginationResponse)
 		repository.AssertExpectations(t)
 	})
 }
