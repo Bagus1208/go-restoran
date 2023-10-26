@@ -56,16 +56,16 @@ func (service *transactionService) Insert(newData model.TransactionInput) (*mode
 	}
 
 	token, redirectURL := service.repository.SnapRequest(result.OrderID, int64(order.Total))
+	if token == "" && redirectURL == "" {
+		return nil, errors.New("create transaction failed")
+	}
+
 	var transactionInputResponse = helper.TransactionToResponseInput(result, token, redirectURL)
 
 	return transactionInputResponse, nil
 }
 
 func (service *transactionService) GetAll(pagination model.QueryParam) ([]model.TransactionResponse, error) {
-	if pagination.Page <= 0 || pagination.PageSize <= 0 {
-		return nil, errors.New("invalid page and page_size value")
-	}
-
 	result, err := service.repository.GetAll(pagination)
 	if err != nil {
 		return nil, errors.New("get data transaction failed")
@@ -111,7 +111,10 @@ func (service *transactionService) Notifications(notificationPayload map[string]
 		return err
 	}
 
-	transaction, _ := service.repository.GetByOrderID(orderID)
+	transaction, err := service.repository.GetByOrderID(orderID)
+	if err != nil {
+		return errors.New("transaction data not found")
+	}
 
 	err = service.repository.UpdateStatusTransaction(transaction.ID, status.Transaction)
 	if err != nil {
