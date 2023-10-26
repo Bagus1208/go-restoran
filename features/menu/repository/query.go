@@ -94,10 +94,11 @@ func (repository *menuRepo) GetByName(name string) *model.Menu {
 
 func (repository *menuRepo) GetFavorite() ([]model.Favorite, error) {
 	var favorites []model.Favorite
-	result := repository.db.Table("order_details").
-		Select("menu_name, SUM(quantity) AS total_order").
-		Group("menu_name").
-		Having("SUM(quantity) > ?", 20).
+	result := repository.db.Table("order_details AS od").
+		Select("menus.name AS menu_name, SUM(od.quantity) AS total_order").
+		Joins("JOIN menus ON menus.id = od.menu_id").
+		Group("menus.name").
+		Having("SUM(od.quantity) > 50").
 		Order("total_order DESC").
 		Scan(&favorites)
 
