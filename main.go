@@ -33,6 +33,8 @@ func main() {
 	var config = config.InitConfig()
 	var validate = validator.New()
 	var jwt = helper.NewJWT(config.Secret)
+	var generator = helper.NewGenerator()
+	var hash = helper.NewHash()
 
 	var db = database.InitDB(*config)
 	database.Migrate(db)
@@ -43,7 +45,7 @@ func main() {
 	var coreAPIClient = utils.MidtransCoreAPIClient(*config)
 
 	var adminRepo = adminRepository.NewAdminRepo(db)
-	var adminService = adminService.NewAdminService(adminRepo, jwt, validate)
+	var adminService = adminService.NewAdminService(adminRepo, jwt, generator, hash, validate)
 	var adminHandler = adminHandler.NewAdminHandler(adminService)
 
 	var menuRepo = menuRepository.NewMenuRepo(db, cdn, *config)
@@ -55,7 +57,7 @@ func main() {
 	var orderHandler = orderHandler.NewOrderHandler(orderService)
 
 	var transactionRepo = transactionRepository.NewTransactionRepo(db, snapClient, coreAPIClient)
-	var transactionService = transactionService.NewTransactionService(transactionRepo, validate)
+	var transactionService = transactionService.NewTransactionService(transactionRepo, validate, generator)
 	var transactionHandler = transactionHandler.NewTransactionHandler(transactionService)
 
 	helper.LogMiddlewares(e)

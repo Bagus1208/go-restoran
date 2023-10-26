@@ -14,19 +14,27 @@ import (
 type AdminServiceInterface interface {
 	Insert(newData model.AdminInput) (*model.AdminResponse, error)
 	Login(email string, password string) (*model.UserCredential, error)
-	SetNoTable(noTable int, email string, password string) (string, error)
+	SetNoTable(setTable model.InputTable) (string, error)
 }
 
 type adminService struct {
 	repository repository.AdminRepositoryInterface
 	jwt        helper.JWTInterface
+	generate   helper.GeneratorInterface
+	hash       helper.HashInterface
 	validator  *validator.Validate
 }
 
-func NewAdminService(repo repository.AdminRepositoryInterface, jwt helper.JWTInterface, validate *validator.Validate) AdminServiceInterface {
+func NewAdminService(repo repository.AdminRepositoryInterface,
+	jwt helper.JWTInterface,
+	generator helper.GeneratorInterface,
+	hashPassword helper.HashInterface,
+	validate *validator.Validate) AdminServiceInterface {
 	return &adminService{
 		repository: repo,
 		jwt:        jwt,
+		generate:   generator,
+		hash:       hashPassword,
 		validator:  validate,
 	}
 }
@@ -39,13 +47,20 @@ func (service *adminService) Insert(newData model.AdminInput) (*model.AdminRespo
 
 	var newUser = helper.RequestToAdmin(newData)
 
-	newUser.ID = helper.GenerateUUID()
-	newUser.Password = helper.HashPassword(newUser.Password)
+	newUser.ID, err = service.generate.GenerateUUID()
+	if err != nil {
+		return nil, errors.New("id generator failed")
+	}
+
+	newUser.Password, err = service.hash.HashPassword(newUser.Password)
+	if err != nil {
+		return nil, errors.New("hash password failed")
+	}
 
 	result, err := service.repository.Insert(newUser)
 	if err != nil {
 		logrus.Error("Service: Insert data failed,", err)
-		return nil, errors.New("cannot insert data: " + err.Error())
+		return nil, errors.New("cannot insert data")
 	}
 
 	var adminResponse = helper.AdminToResponse(result)
@@ -62,7 +77,7 @@ func (service *adminService) Login(email string, password string) (*model.UserCr
 		return nil, errors.New("process failed")
 	}
 
-	if !helper.CompareHash(password, result.Password) {
+	if !service.hash.CompareHash(password, result.Password) {
 		return nil, errors.New("wrong password")
 	}
 
@@ -76,8 +91,8 @@ func (service *adminService) Login(email string, password string) (*model.UserCr
 	return response, nil
 }
 
-func (service *adminService) SetNoTable(noTable int, email string, password string) (string, error) {
-	result, err := service.repository.Login(email)
+func (service *adminService) SetNoTable(setTable model.InputTable) (string, error) {
+	result, err := service.repository.Login(setTable.Email)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return "", errors.New("user admin not found")
@@ -85,11 +100,11 @@ func (service *adminService) SetNoTable(noTable int, email string, password stri
 		return "", errors.New("process failed")
 	}
 
-	if !helper.CompareHash(password, result.Password) {
+	if !service.hash.CompareHash(setTable.Password, result.Password) {
 		return "", errors.New("wrong password")
 	}
 
-	token := service.jwt.GenerateTableToken(noTable, result.Name)
+	token := service.jwt.GenerateTableToken(setTable.NoTable, result.Name)
 	if token == "" {
 		return "", errors.New("get token process failed")
 	}

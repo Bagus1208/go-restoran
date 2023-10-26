@@ -75,10 +75,6 @@ func (service *orderService) Insert(newData model.OrderInput, stringToken string
 }
 
 func (service *orderService) GetAll(pagination model.Pagination) ([]model.OrderResponse, error) {
-	if pagination.Page <= 0 || pagination.PageSize <= 0 {
-		return nil, errors.New("invalid page and page_size value")
-	}
-
 	result, err := service.repository.GetAll(pagination)
 	if err != nil {
 		return nil, errors.New("get data order failed")
