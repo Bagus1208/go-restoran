@@ -10,7 +10,7 @@ import (
 type Order struct {
 	ID          uint              `gorm:"primaryKey; type:int"`
 	Transaction model.Transaction `gorm:"foreignKey:ID"`
-	NoTable     int               `gorm:"type:int"`
+	TableNumber int               `gorm:"type:int"`
 	Orders      []OrderDetail     `gorm:"foreignKey:OrderID"`
 	Total       int               `gorm:"type:int"`
 	Status      string            `gorm:"type:varchar(10);default:'unpaid'"`
