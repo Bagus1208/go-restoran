@@ -4,6 +4,19 @@ Sistem Manajemen Menu dan Pesanan Restoran adalah solusi perangkat lunak yang di
 * meningkatkan pengalamanpengalaman pelanggan dalam melakukan pemesanan
 * Mempermudah proses manajemen restoran
 
+## Feature Specification
+* Admin dapat login untuk mengakses fitur menambah menu, mengedit menu, dan menghapus menu
+* Admin dapat menambah menu dengan item berupa nama, kategori(makanan, minuman, hidangan penutup), harga, deskripsi, dan foto menu.
+* Admin dapat mengedit menu
+* Admin dapat menghapus menu
+* User dapat mengakses menu 
+* User dapat mengelompokkan menu berdasarkan kategori(makanan, minuman, hidangan penutup)
+* User dapat melihat menu yang sering dipesan
+* User dapat melihat menu seperti deskripsi dan harga
+* User dapat memesan berdasarkan menu yang tersedia
+* User dapat melakukan pembayaran melalui payment gateway
+
+
 ## Tech Stack
 * App Framework: **Echo**
 * ORM Library: **GORM**
