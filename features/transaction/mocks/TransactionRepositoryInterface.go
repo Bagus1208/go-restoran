@@ -220,11 +220,11 @@ func (_m *TransactionRepositoryInterface) UpdateStatusOrder(id uint, status stri
 }
 
 // UpdateStatusTransaction provides a mock function with given fields: id, status
-func (_m *TransactionRepositoryInterface) UpdateStatusTransaction(id uint, status string) error {
+func (_m *TransactionRepositoryInterface) UpdateStatusTransaction(id uint, status model.Status) error {
 	ret := _m.Called(id, status)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(uint, string) error); ok {
+	if rf, ok := ret.Get(0).(func(uint, model.Status) error); ok {
 		r0 = rf(id, status)
 	} else {
 		r0 = ret.Error(0)

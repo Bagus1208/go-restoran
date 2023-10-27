@@ -20,7 +20,7 @@ type TransactionRepositoryInterface interface {
 	GetOrder(id int) (*model.Order, error)
 	SnapRequest(orderID string, total int64) (string, string)
 	CheckTransaction(orderID string) (model.Status, error)
-	UpdateStatusTransaction(id uint, status string) error
+	UpdateStatusTransaction(id uint, status model.Status) error
 	UpdateStatusOrder(id uint, status string) error
 }
 
@@ -142,8 +142,8 @@ func (repository *transactionRepo) CheckTransaction(orderID string) (model.Statu
 	return model.Status{}, err
 }
 
-func (repository *transactionRepo) UpdateStatusTransaction(id uint, status string) error {
-	result := repository.db.Table("transactions").Where("id = ?", id).Update("status", status)
+func (repository *transactionRepo) UpdateStatusTransaction(id uint, status model.Status) error {
+	result := repository.db.Table("transactions").Where("id = ?", id).Omit("Order").Updates(status)
 	if result.Error != nil {
 		logrus.Error("Repository: Update transaction status error,", result.Error)
 		return result.Error

@@ -10,7 +10,8 @@ import (
 )
 
 type TransactionServiceInterface interface {
-	Insert(newData model.TransactionInput) (*model.TransactionInputResponse, error)
+	InsertWithPaymentGateway(newData model.TransactionInput) (*model.TransactionInputResponse, error)
+	InsertWithoutPaymentGateway(newData model.TransactionInput) (*model.TransactionResponse, error)
 	GetAll(pagination model.QueryParam) ([]model.TransactionResponse, error)
 	GetByID(id int) (*model.TransactionResponse, error)
 	Delete(id int) error
@@ -33,7 +34,7 @@ func NewTransactionService(repo repository.TransactionRepositoryInterface,
 	}
 }
 
-func (service *transactionService) Insert(newData model.TransactionInput) (*model.TransactionInputResponse, error) {
+func (service *transactionService) InsertWithPaymentGateway(newData model.TransactionInput) (*model.TransactionInputResponse, error) {
 	err := service.validator.Struct(newData)
 	if err != nil {
 		return nil, errors.New("validation failed please check your input and try again")
@@ -63,6 +64,35 @@ func (service *transactionService) Insert(newData model.TransactionInput) (*mode
 	var transactionInputResponse = helper.TransactionToResponseInput(result, token, redirectURL)
 
 	return transactionInputResponse, nil
+}
+
+func (service *transactionService) InsertWithoutPaymentGateway(newData model.TransactionInput) (*model.TransactionResponse, error) {
+	err := service.validator.Struct(newData)
+	if err != nil {
+		return nil, errors.New("validation failed please check your input and try again")
+	}
+
+	var newTransaction = helper.RequestToTransaction(newData)
+	newTransaction.PaymentMethod = newData.PaymentMethod
+	newTransaction.Status = "success"
+	newTransaction.OrderID, err = service.generate.GenerateUUID()
+	if err != nil {
+		return nil, errors.New("order id generator failed")
+	}
+
+	result, err := service.repository.Insert(newTransaction)
+	if err != nil {
+		return nil, errors.New("insert data transaction failed")
+	}
+
+	err = service.repository.UpdateStatusOrder(result.ID, "Paid")
+	if err != nil {
+		return nil, errors.New("update status order failed")
+	}
+
+	var transactionResponse = helper.TransactionToResponse(result)
+
+	return transactionResponse, nil
 }
 
 func (service *transactionService) GetAll(pagination model.QueryParam) ([]model.TransactionResponse, error) {
@@ -106,6 +136,11 @@ func (service *transactionService) Notifications(notificationPayload map[string]
 		return errors.New("invalid notification payload")
 	}
 
+	paymentType, exist := notificationPayload["payment_type"].(string)
+	if !exist {
+		return errors.New("invalid notification payload")
+	}
+
 	status, err := service.repository.CheckTransaction(orderID)
 	if err != nil {
 		return err
@@ -116,7 +151,8 @@ func (service *transactionService) Notifications(notificationPayload map[string]
 		return errors.New("transaction data not found")
 	}
 
-	err = service.repository.UpdateStatusTransaction(transaction.ID, status.Transaction)
+	status.PaymentMethod = paymentType
+	err = service.repository.UpdateStatusTransaction(transaction.ID, status)
 	if err != nil {
 		return err
 	}

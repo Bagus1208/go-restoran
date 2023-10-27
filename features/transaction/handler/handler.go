@@ -38,7 +38,15 @@ func (handler *transactionHandler) Insert() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
-		result, err := handler.service.Insert(transactionInput)
+		var result any
+		var err error
+
+		if transactionInput.PaymentMethod != "" {
+			result, err = handler.service.InsertWithoutPaymentGateway(transactionInput)
+		} else {
+			result, err = handler.service.InsertWithPaymentGateway(transactionInput)
+		}
+
 		if err != nil {
 			if strings.Contains(err.Error(), "validation failed") {
 				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
