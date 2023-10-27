@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInse(t *testing.T) {
+func TestInsertWithPaymentGateway(t *testing.T) {
 	var repository = mocks.NewTransactionRepositoryInterface(t)
 	var validate = validator.New()
 	var generator = mockHelper.NewGeneratorInterface(t)
@@ -47,7 +47,7 @@ func TestInse(t *testing.T) {
 		repository.On("GetOrder", int(transactionData.ID)).Return(&orderData, nil).Once()
 		repository.On("SnapRequest", transactionData.OrderID, int64(orderData.Total)).Return(token, redirectURL).Once()
 
-		result, err := service.Insert(newData)
+		result, err := service.InsertWithPaymentGateway(newData)
 		assert.Nil(t, err)
 		assert.Equal(t, newData.OrderID, result.ID)
 		generator.AssertExpectations(t)
@@ -55,7 +55,7 @@ func TestInse(t *testing.T) {
 	})
 
 	t.Run("Validation failed", func(t *testing.T) {
-		result, err := service.Insert(invalidData)
+		result, err := service.InsertWithPaymentGateway(invalidData)
 
 		assert.Error(t, err)
 		assert.EqualError(t, err, "validation failed please check your input and try again")
@@ -66,7 +66,7 @@ func TestInse(t *testing.T) {
 	t.Run("Generate id failed", func(t *testing.T) {
 		generator.On("GenerateUUID").Return("", errors.New("id generator failed")).Once()
 
-		result, err := service.Insert(newData)
+		result, err := service.InsertWithPaymentGateway(newData)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "order id generator failed")
 		assert.Nil(t, result)
@@ -80,7 +80,7 @@ func TestInse(t *testing.T) {
 		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
 		repository.On("Insert", newTransaction).Return(nil, errors.New("insert data failed")).Once()
 
-		result, err := service.Insert(newData)
+		result, err := service.InsertWithPaymentGateway(newData)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "insert data transaction failed")
 		assert.Nil(t, result)
@@ -94,9 +94,9 @@ func TestInse(t *testing.T) {
 
 		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
 		repository.On("Insert", newTransaction).Return(&transactionData, nil).Once()
-		repository.On("GetOrder", int(transactionData.ID)).Return(nil, errors.New("ger order error")).Once()
+		repository.On("GetOrder", int(transactionData.ID)).Return(nil, errors.New("get order error")).Once()
 
-		result, err := service.Insert(newData)
+		result, err := service.InsertWithPaymentGateway(newData)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "get data order failed")
 		assert.Nil(t, result)
@@ -113,9 +113,102 @@ func TestInse(t *testing.T) {
 		repository.On("GetOrder", int(transactionData.ID)).Return(&orderData, nil).Once()
 		repository.On("SnapRequest", transactionData.OrderID, int64(orderData.Total)).Return("", "").Once()
 
-		result, err := service.Insert(newData)
+		result, err := service.InsertWithPaymentGateway(newData)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "create transaction failed")
+		assert.Nil(t, result)
+		generator.AssertExpectations(t)
+		repository.AssertExpectations(t)
+	})
+}
+
+func TestInsertWithoutPaymentGateway(t *testing.T) {
+	var repository = mocks.NewTransactionRepositoryInterface(t)
+	var validate = validator.New()
+	var generator = mockHelper.NewGeneratorInterface(t)
+	var service = NewTransactionService(repository, validate, generator)
+
+	var newData = model.TransactionInput{
+		OrderID:       1,
+		PaymentMethod: "cash",
+	}
+
+	var invalidData = model.TransactionInput{}
+
+	var transactionData = model.Transaction{
+		ID:            1,
+		OrderID:       "randomOrderID",
+		PaymentMethod: "cash",
+		Status:        "success",
+	}
+
+	t.Run("Success insert data", func(t *testing.T) {
+		var newTransaction = helper.RequestToTransaction(newData)
+		newTransaction.OrderID = "randomUUID"
+		newTransaction.PaymentMethod = "cash"
+		newTransaction.Status = "success"
+
+		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
+		repository.On("Insert", newTransaction).Return(&transactionData, nil).Once()
+		repository.On("UpdateStatusOrder", transactionData.ID, "Paid").Return(nil).Once()
+
+		result, err := service.InsertWithoutPaymentGateway(newData)
+		assert.Nil(t, err)
+		assert.Equal(t, newData.OrderID, result.ID)
+		assert.Equal(t, newData.PaymentMethod, result.PaymentMethod)
+		generator.AssertExpectations(t)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Validation failed", func(t *testing.T) {
+		result, err := service.InsertWithoutPaymentGateway(invalidData)
+
+		assert.Error(t, err)
+		assert.EqualError(t, err, "validation failed please check your input and try again")
+		assert.Nil(t, result)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Generate id failed", func(t *testing.T) {
+		generator.On("GenerateUUID").Return("", errors.New("id generator failed")).Once()
+
+		result, err := service.InsertWithoutPaymentGateway(newData)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "order id generator failed")
+		assert.Nil(t, result)
+		generator.AssertExpectations(t)
+	})
+
+	t.Run("Insert data failed", func(t *testing.T) {
+		var newTransaction = helper.RequestToTransaction(newData)
+		newTransaction.OrderID = "randomUUID"
+		newTransaction.PaymentMethod = "cash"
+		newTransaction.Status = "success"
+
+		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
+		repository.On("Insert", newTransaction).Return(nil, errors.New("insert data failed")).Once()
+
+		result, err := service.InsertWithoutPaymentGateway(newData)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "insert data transaction failed")
+		assert.Nil(t, result)
+		generator.AssertExpectations(t)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Update status order error", func(t *testing.T) {
+		var newTransaction = helper.RequestToTransaction(newData)
+		newTransaction.OrderID = "randomUUID"
+		newTransaction.PaymentMethod = "cash"
+		newTransaction.Status = "success"
+
+		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
+		repository.On("Insert", newTransaction).Return(&transactionData, nil).Once()
+		repository.On("UpdateStatusOrder", transactionData.ID, "Paid").Return(errors.New("update status order error")).Once()
+
+		result, err := service.InsertWithoutPaymentGateway(newData)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "update status order failed")
 		assert.Nil(t, result)
 		generator.AssertExpectations(t)
 		repository.AssertExpectations(t)
@@ -231,13 +324,19 @@ func TestNotifications(t *testing.T) {
 	var service = NewTransactionService(repository, validate, generator)
 
 	var notificationsPayload = map[string]any{
-		"order_id": "randomOrderID",
+		"order_id":     "randomOrderID",
+		"payment_type": "qris",
 	}
 	var invalidNotificationsPayload = map[string]any{}
 
+	var paymentMethodNotFound = map[string]any{
+		"order_id": "randomOrderID",
+	}
+
 	var status = model.Status{
-		Transaction: "Success",
-		Order:       "Paid",
+		Status:        "Success",
+		Order:         "Paid",
+		PaymentMethod: "qris",
 	}
 
 	var transactionData = model.Transaction{
@@ -248,7 +347,7 @@ func TestNotifications(t *testing.T) {
 	t.Run("Success notifications", func(t *testing.T) {
 		repository.On("CheckTransaction", notificationsPayload["order_id"]).Return(status, nil).Once()
 		repository.On("GetByOrderID", notificationsPayload["order_id"]).Return(&transactionData, nil).Once()
-		repository.On("UpdateStatusTransaction", transactionData.ID, status.Transaction).Return(nil).Once()
+		repository.On("UpdateStatusTransaction", transactionData.ID, status).Return(nil).Once()
 		repository.On("UpdateStatusOrder", transactionData.ID, status.Order).Return(nil).Once()
 
 		err := service.Notifications(notificationsPayload)
@@ -256,8 +355,15 @@ func TestNotifications(t *testing.T) {
 		repository.AssertExpectations(t)
 	})
 
-	t.Run("Invalid notifications payload", func(t *testing.T) {
+	t.Run("Order id not found", func(t *testing.T) {
 		err := service.Notifications(invalidNotificationsPayload)
+
+		assert.Error(t, err)
+		assert.EqualError(t, err, "invalid notification payload")
+	})
+
+	t.Run("Payment method not found", func(t *testing.T) {
+		err := service.Notifications(paymentMethodNotFound)
 
 		assert.Error(t, err)
 		assert.EqualError(t, err, "invalid notification payload")
@@ -285,7 +391,7 @@ func TestNotifications(t *testing.T) {
 	t.Run("Update status transaction failed", func(t *testing.T) {
 		repository.On("CheckTransaction", notificationsPayload["order_id"]).Return(status, nil).Once()
 		repository.On("GetByOrderID", notificationsPayload["order_id"]).Return(&transactionData, nil).Once()
-		repository.On("UpdateStatusTransaction", transactionData.ID, status.Transaction).Return(errors.New("update status transaction error")).Once()
+		repository.On("UpdateStatusTransaction", transactionData.ID, status).Return(errors.New("update status transaction error")).Once()
 
 		err := service.Notifications(notificationsPayload)
 		assert.Error(t, err)
@@ -296,7 +402,7 @@ func TestNotifications(t *testing.T) {
 	t.Run("Update status order error", func(t *testing.T) {
 		repository.On("CheckTransaction", notificationsPayload["order_id"]).Return(status, nil).Once()
 		repository.On("GetByOrderID", notificationsPayload["order_id"]).Return(&transactionData, nil).Once()
-		repository.On("UpdateStatusTransaction", transactionData.ID, status.Transaction).Return(nil).Once()
+		repository.On("UpdateStatusTransaction", transactionData.ID, status).Return(nil).Once()
 		repository.On("UpdateStatusOrder", transactionData.ID, status.Order).Return(errors.New("update status order error")).Once()
 
 		err := service.Notifications(notificationsPayload)

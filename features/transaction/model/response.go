@@ -1,9 +1,10 @@
 package model
 
 type TransactionResponse struct {
-	ID      uint   `json:"id"`
-	OrderID string `json:"order_id"`
-	Status  string `json:"status"`
+	ID            uint   `json:"id"`
+	OrderID       string `json:"order_id"`
+	PaymentMethod string `json:"payment_method"`
+	Status        string `json:"status"`
 }
 
 type TransactionInputResponse struct {

@@ -1,7 +1,8 @@
 package model
 
 type TransactionInput struct {
-	OrderID uint `json:"order_id" form:"order_id" validate:"required"`
+	OrderID       uint   `json:"order_id" form:"order_id" validate:"required"`
+	PaymentMethod string `json:"payment_method" form:"payment_method"`
 }
 
 type QueryParam struct {

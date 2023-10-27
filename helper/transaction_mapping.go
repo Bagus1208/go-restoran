@@ -20,8 +20,9 @@ func TransactionToResponseInput(data *model.Transaction, token string, url strin
 
 func TransactionToResponse(data *model.Transaction) *model.TransactionResponse {
 	return &model.TransactionResponse{
-		ID:      data.ID,
-		OrderID: data.OrderID,
-		Status:  data.Status,
+		ID:            data.ID,
+		OrderID:       data.OrderID,
+		PaymentMethod: data.PaymentMethod,
+		Status:        data.Status,
 	}
 }

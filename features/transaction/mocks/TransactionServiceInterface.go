@@ -79,8 +79,34 @@ func (_m *TransactionServiceInterface) GetByID(id int) (*model.TransactionRespon
 	return r0, r1
 }
 
-// Insert provides a mock function with given fields: newData
-func (_m *TransactionServiceInterface) Insert(newData model.TransactionInput) (*model.TransactionInputResponse, error) {
+// InsertWithoutPaymentGateway provides a mock function with given fields: newData
+func (_m *TransactionServiceInterface) InsertWithoutPaymentGateway(newData model.TransactionInput) (*model.TransactionResponse, error) {
+	ret := _m.Called(newData)
+
+	var r0 *model.TransactionResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.TransactionInput) (*model.TransactionResponse, error)); ok {
+		return rf(newData)
+	}
+	if rf, ok := ret.Get(0).(func(model.TransactionInput) *model.TransactionResponse); ok {
+		r0 = rf(newData)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TransactionResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TransactionInput) error); ok {
+		r1 = rf(newData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// InsertWtihPaymentGateway provides a mock function with given fields: newData
+func (_m *TransactionServiceInterface) InsertWithPaymentGateway(newData model.TransactionInput) (*model.TransactionInputResponse, error) {
 	ret := _m.Called(newData)
 
 	var r0 *model.TransactionInputResponse
