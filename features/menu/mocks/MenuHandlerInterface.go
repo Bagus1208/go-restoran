@@ -77,6 +77,22 @@ func (_m *MenuHandlerInterface) Insert() echo.HandlerFunc {
 	return r0
 }
 
+// RecommendationMenu provides a mock function with given fields:
+func (_m *MenuHandlerInterface) RecommendationMenu() echo.HandlerFunc {
+	ret := _m.Called()
+
+	var r0 echo.HandlerFunc
+	if rf, ok := ret.Get(0).(func() echo.HandlerFunc); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(echo.HandlerFunc)
+		}
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields:
 func (_m *MenuHandlerInterface) Update() echo.HandlerFunc {
 	ret := _m.Called()

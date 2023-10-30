@@ -55,6 +55,32 @@ func (_m *MenuRepositoryInterface) GetAll(pagination model.QueryParam) ([]model.
 	return r0, r1
 }
 
+// GetAllMenuName provides a mock function with given fields:
+func (_m *MenuRepositoryInterface) GetAllMenuName() ([]string, error) {
+	ret := _m.Called()
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]string, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByName provides a mock function with given fields: name
 func (_m *MenuRepositoryInterface) GetByName(name string) *model.Menu {
 	ret := _m.Called(name)
@@ -142,6 +168,30 @@ func (_m *MenuRepositoryInterface) Insert(newData *model.Menu) (*model.Menu, err
 
 	if rf, ok := ret.Get(1).(func(*model.Menu) error); ok {
 		r1 = rf(newData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RecommendationMenu provides a mock function with given fields: request
+func (_m *MenuRepositoryInterface) RecommendationMenu(request model.RecommendationRequest) (string, error) {
+	ret := _m.Called(request)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.RecommendationRequest) (string, error)); ok {
+		return rf(request)
+	}
+	if rf, ok := ret.Get(0).(func(model.RecommendationRequest) string); ok {
+		r0 = rf(request)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(model.RecommendationRequest) error); ok {
+		r1 = rf(request)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -19,6 +19,7 @@ type Config struct {
 	CDN_API_Secret  string
 	CDN_Folder_Name string
 	MT_Server_Key   string
+	AI_API_KEY      string
 }
 
 func InitConfig() *Config {
@@ -77,6 +78,9 @@ func loadConfig() *Config {
 	}
 	if value, found := os.LookupEnv("MIDTRANS_SERVER_KEY"); found {
 		result.MT_Server_Key = value
+	}
+	if value, found := os.LookupEnv("OPENAI_API_KEY"); found {
+		result.AI_API_KEY = value
 	}
 
 	return result

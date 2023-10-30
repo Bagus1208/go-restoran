@@ -406,3 +406,66 @@ func TestDelete(t *testing.T) {
 		repository.AssertExpectations(t)
 	})
 }
+
+func TestRecommendationMenu(t *testing.T) {
+	var repository = mocks.NewMenuRepositoryInterface(t)
+	var validate = validator.New()
+	var service = NewMenuService(repository, validate)
+
+	var request = model.RecommendationRequest{
+		Message: "Saya ingin makanan yang pedas",
+	}
+
+	var invalidRequest = model.RecommendationRequest{}
+
+	var menuName = []string{
+		"Bakso",
+		"Nasi goreng",
+		"Kopi",
+		"klepon",
+	}
+
+	t.Run("Success recommendation menu", func(t *testing.T) {
+		request.MenuName = menuName
+
+		repository.On("GetAllMenuName").Return(menuName, nil).Once()
+		repository.On("RecommendationMenu", request).Return("Saya merekomendasikan bakso", nil).Once()
+
+		result, err := service.RecommendationMenu(request)
+		assert.Nil(t, err)
+		assert.Equal(t, "Saya merekomendasikan bakso", result)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Validation failed", func(t *testing.T) {
+		result, err := service.RecommendationMenu(invalidRequest)
+
+		assert.Error(t, err)
+		assert.EqualError(t, err, "validation failed please check your input and try again")
+		assert.Empty(t, result)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Get menu failed", func(t *testing.T) {
+		repository.On("GetAllMenuName").Return(nil, errors.New("get all menu name error")).Once()
+
+		result, err := service.RecommendationMenu(request)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "get menu name failed")
+		assert.Empty(t, result)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Recommendation menu failed", func(t *testing.T) {
+		request.MenuName = menuName
+
+		repository.On("GetAllMenuName").Return(menuName, nil).Once()
+		repository.On("RecommendationMenu", request).Return("", errors.New("recommendation error")).Once()
+
+		result, err := service.RecommendationMenu(request)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "recommendation error")
+		assert.Empty(t, result)
+		repository.AssertExpectations(t)
+	})
+}

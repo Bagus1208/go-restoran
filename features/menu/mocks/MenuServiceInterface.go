@@ -177,6 +177,30 @@ func (_m *MenuServiceInterface) Insert(fileHeader *multipart.FileHeader, newData
 	return r0, r1
 }
 
+// RecommendationMenu provides a mock function with given fields: request
+func (_m *MenuServiceInterface) RecommendationMenu(request model.RecommendationRequest) (string, error) {
+	ret := _m.Called(request)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.RecommendationRequest) (string, error)); ok {
+		return rf(request)
+	}
+	if rf, ok := ret.Get(0).(func(model.RecommendationRequest) string); ok {
+		r0 = rf(request)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(model.RecommendationRequest) error); ok {
+		r1 = rf(request)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Update provides a mock function with given fields: id, fileHeader, updateData
 func (_m *MenuServiceInterface) Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error) {
 	ret := _m.Called(id, fileHeader, updateData)

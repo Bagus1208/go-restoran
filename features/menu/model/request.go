@@ -14,3 +14,8 @@ type QueryParam struct {
 	Name     string
 	Category string
 }
+
+type RecommendationRequest struct {
+	Message  string `json:"message" form:"message" validate:"required"`
+	MenuName []string
+}

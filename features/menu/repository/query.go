@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"restoran/config"
 	"restoran/features/menu/model"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/cloudinary/cloudinary-go"
 	"github.com/cloudinary/cloudinary-go/api/uploader"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -21,23 +23,27 @@ type MenuRepositoryInterface interface {
 	GetCategory(queryParam model.QueryParam) ([]model.Menu, error)
 	GetFavorite() ([]model.Favorite, error)
 	GetByName(name string) *model.Menu
+	GetAllMenuName() ([]string, error)
 	Update(id int, updateData *model.Menu) (*model.Menu, error)
 	Delete(id int) error
 	UploadImage(fileHeader *multipart.FileHeader, name string) (string, error)
 	TotalData() (int64, error)
 	TotalDataByCategory(category string) (int64, error)
+	RecommendationMenu(request model.RecommendationRequest) (string, error)
 }
 
 type menuRepo struct {
 	db     *gorm.DB
 	cdn    *cloudinary.Cloudinary
+	ai     *openai.Client
 	config config.Config
 }
 
-func NewMenuRepo(DB *gorm.DB, CDN *cloudinary.Cloudinary, config config.Config) MenuRepositoryInterface {
+func NewMenuRepo(DB *gorm.DB, CDN *cloudinary.Cloudinary, AI *openai.Client, config config.Config) MenuRepositoryInterface {
 	return &menuRepo{
 		db:     DB,
 		cdn:    CDN,
+		ai:     AI,
 		config: config,
 	}
 }
@@ -108,6 +114,17 @@ func (repository *menuRepo) GetFavorite() ([]model.Favorite, error) {
 	}
 
 	return favorites, nil
+}
+
+func (repository *menuRepo) GetAllMenuName() ([]string, error) {
+	var menuName []string
+
+	result := repository.db.Table("menus").Select("name").Pluck("name", &menuName)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return menuName, nil
 }
 
 func (repository *menuRepo) Update(id int, updateData *model.Menu) (*model.Menu, error) {
@@ -181,4 +198,28 @@ func (repository *menuRepo) TotalDataByCategory(category string) (int64, error) 
 	}
 
 	return total, nil
+}
+
+func (repository *menuRepo) RecommendationMenu(request model.RecommendationRequest) (string, error) {
+	ctx := context.TODO()
+
+	chatMessage := openai.ChatCompletionMessage{
+		Role: openai.ChatMessageRoleUser,
+		Content: fmt.Sprintf("%s \n\nberikan rekomendasi menu dibawah ini untuk menjawab pertanyaan diatas\n%s \n\njawab seperti format dibawah ini\n'saya merekomendasikan bakso karena memiliki rasa yang nikmat dan gurih dan juga mengenyangkan, lalu saya merekomendasikan sop buah karena mengandung banyak buah yang menyegarkan'",
+			request.Message,
+			request.MenuName),
+	}
+
+	chatRequest := openai.ChatCompletionRequest{
+		Model:    openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{chatMessage},
+	}
+
+	resp, err := repository.ai.CreateChatCompletion(ctx, chatRequest)
+	if err != nil {
+		return "", err
+	}
+
+	reply := resp.Choices[0].Message.Content
+	return reply, nil
 }

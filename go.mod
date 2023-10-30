@@ -33,6 +33,7 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/midtrans/midtrans-go v1.3.7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sashabaranov/go-openai v1.16.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
