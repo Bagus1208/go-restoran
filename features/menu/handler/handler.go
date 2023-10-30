@@ -17,6 +17,7 @@ type MenuHandlerInterface interface {
 	GetFavorite() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
+	RecommendationMenu() echo.HandlerFunc
 }
 
 type menuHandler struct {
@@ -155,5 +156,21 @@ func (handler *menuHandler) Delete() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, helper.FormatResponse("successfully delete data", nil))
+	}
+}
+
+func (handler *menuHandler) RecommendationMenu() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var request model.RecommendationRequest
+		if err := c.Bind(&request); err != nil {
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
+		}
+
+		result, err := handler.service.RecommendationMenu(request)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
+		}
+
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully reccommendation menu", result))
 	}
 }

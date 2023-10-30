@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,6 +20,7 @@ type Config struct {
 	CDN_API_Secret  string
 	CDN_Folder_Name string
 	MT_Server_Key   string
+	AI_API_KEY      string
 }
 
 func InitConfig() *Config {
@@ -36,11 +38,11 @@ func InitConfig() *Config {
 func loadConfig() *Config {
 	var result = new(Config)
 
-	// err := godotenv.Load(".env")
-	// if err != nil {
-	// 	logrus.Error("Config: Cannot load config file,", err.Error())
-	// 	return nil
-	// }
+	err := godotenv.Load(".env")
+	if err != nil {
+		logrus.Error("Config: Cannot load config file,", err.Error())
+		return nil
+	}
 
 	if value, found := os.LookupEnv("SERVER"); found {
 		result.Server_Port = value
@@ -77,6 +79,9 @@ func loadConfig() *Config {
 	}
 	if value, found := os.LookupEnv("MIDTRANS_SERVER_KEY"); found {
 		result.MT_Server_Key = value
+	}
+	if value, found := os.LookupEnv("OPENAI_API_KEY"); found {
+		result.AI_API_KEY = value
 	}
 
 	return result

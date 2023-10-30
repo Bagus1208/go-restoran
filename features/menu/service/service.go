@@ -19,6 +19,7 @@ type MenuServiceInterface interface {
 	GetByName(name string) (*model.MenuResponse, error)
 	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error)
 	Delete(id int) error
+	RecommendationMenu(request model.RecommendationRequest) (string, error)
 }
 
 type menuService struct {
@@ -161,4 +162,24 @@ func (service *menuService) Delete(id int) error {
 	}
 
 	return nil
+}
+
+func (service *menuService) RecommendationMenu(request model.RecommendationRequest) (string, error) {
+	err := service.validator.Struct(request)
+	if err != nil {
+		return "", errors.New("validation failed please check your input and try again")
+	}
+
+	menuName, err := service.repository.GetAllMenuName()
+	if err != nil {
+		return "", errors.New("get menu name failed")
+	}
+
+	request.MenuName = menuName
+	result, err := service.repository.RecommendationMenu(request)
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }

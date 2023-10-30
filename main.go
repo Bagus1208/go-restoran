@@ -44,11 +44,13 @@ func main() {
 	var snapClient = utils.MidtransSnapClient(*config)
 	var coreAPIClient = utils.MidtransCoreAPIClient(*config)
 
+	var openAIClient = utils.OpenAIClient(*config)
+
 	var adminRepo = adminRepository.NewAdminRepo(db)
 	var adminService = adminService.NewAdminService(adminRepo, jwt, generator, hash, validate)
 	var adminHandler = adminHandler.NewAdminHandler(adminService)
 
-	var menuRepo = menuRepository.NewMenuRepo(db, cdn, *config)
+	var menuRepo = menuRepository.NewMenuRepo(db, cdn, openAIClient, *config)
 	var menuService = menuService.NewMenuService(menuRepo, validate)
 	var menuHandler = menuHandler.NewMenuHandler(menuService)
 
