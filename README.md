@@ -33,4 +33,4 @@ Sistem Manajemen Menu dan Pesanan Restoran adalah solusi perangkat lunak yang di
 </p>
 
 ## API Specification
-[API Specification](https://www.postman.com/lively-equinox-899238/workspace/sistem-manajemen-menu-dan-pesanan-restoran/documentation/29059809-9893ab1e-4853-4912-b420-b9dac1123834)
+[API Specification](https://documenter.getpostman.com/view/29059809/2sAYkErfrh)
