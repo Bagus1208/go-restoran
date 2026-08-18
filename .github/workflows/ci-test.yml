@@ -8,6 +8,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Run Unit Tests
+        run: go test -v ./...
+
       - name: Start app with docker-compose
         env:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CDN_CLOUD_NAME }}
