@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"restoran/config"
 	adminHandler "restoran/features/admin/handler"
 	adminRepository "restoran/features/admin/repository"
@@ -63,6 +64,12 @@ func main() {
 	var transactionHandler = transactionHandler.NewTransactionHandler(transactionService)
 
 	helper.LogMiddlewares(e)
+
+	e.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, helper.FormatResponse("server is healthy and running", map[string]any{
+			"status": "ok",
+		}))
+	})
 
 	routes.RouteMenu(e, menuHandler, *config)
 	routes.RouteAdmin(e, adminHandler, *config)
