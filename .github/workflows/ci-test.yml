@@ -21,7 +21,7 @@ jobs:
       - name: Wait for app to be ready
         run: |
           for i in {1..30}; do
-            curl -sf http://localhost:8000/health && break
+            curl -sf http://localhost:8000/menus && break
             echo "Waiting for app... ($i)"
             sleep 2
           done
