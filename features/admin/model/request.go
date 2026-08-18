@@ -12,7 +12,6 @@ type AdminInputLogin struct {
 }
 
 type InputTable struct {
-	NoTable  int    `json:"no_table" form:"no_table" validate:"required"`
-	Email    string `json:"email" form:"email" validate:"required"`
-	Password string `json:"password" form:"password" validate:"required"`
+	TableNumber int `json:"table_number" form:"table_number" validate:"required,min=1"`
+	NoTable     int `json:"no_table" form:"no_table"`
 }

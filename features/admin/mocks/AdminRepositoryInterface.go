@@ -39,6 +39,20 @@ func (_m *AdminRepositoryInterface) Insert(newData *model.Admin) (*model.Admin, 
 	return r0, r1
 }
 
+// IsDuplicateEmail provides a mock function with given fields: email
+func (_m *AdminRepositoryInterface) IsDuplicateEmail(email string) bool {
+	ret := _m.Called(email)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(email)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // Login provides a mock function with given fields: email
 func (_m *AdminRepositoryInterface) Login(email string) (*model.Admin, error) {
 	ret := _m.Called(email)

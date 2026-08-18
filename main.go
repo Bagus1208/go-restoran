@@ -65,7 +65,7 @@ func main() {
 	helper.LogMiddlewares(e)
 
 	routes.RouteMenu(e, menuHandler, *config)
-	routes.RouteAdmin(e, adminHandler)
+	routes.RouteAdmin(e, adminHandler, *config)
 	routes.RouteOrder(e, orderHandler, *config)
 	routes.RouteTransaction(e, transactionHandler, *config)
 

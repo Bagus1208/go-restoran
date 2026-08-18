@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestInsert(t *testing.T) {
@@ -34,6 +33,7 @@ func TestInsert(t *testing.T) {
 
 	t.Run("success insert", func(t *testing.T) {
 		newUser := helper.RequestToAdmin(newData)
+		repository.On("IsDuplicateEmail", newData.Email).Return(false).Once()
 		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
 		hash.On("HashPassword", newUser.Password).Return("hashPassword", nil).Once()
 
@@ -47,7 +47,6 @@ func TestInsert(t *testing.T) {
 		generator.AssertExpectations(t)
 		hash.AssertExpectations(t)
 		repository.AssertExpectations(t)
-
 	})
 
 	t.Run("Validation error", func(t *testing.T) {
@@ -59,17 +58,30 @@ func TestInsert(t *testing.T) {
 		repository.AssertExpectations(t)
 	})
 
+	t.Run("Email already used", func(t *testing.T) {
+		repository.On("IsDuplicateEmail", newData.Email).Return(true).Once()
+
+		result, err := service.Insert(newData)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "email already used")
+		assert.Nil(t, result)
+		repository.AssertExpectations(t)
+	})
+
 	t.Run("Generate id failed", func(t *testing.T) {
+		repository.On("IsDuplicateEmail", newData.Email).Return(false).Once()
 		generator.On("GenerateUUID").Return("", errors.New("id generator failed")).Once()
 
 		result, err := service.Insert(newData)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "id generator failed")
 		assert.Nil(t, result)
+		repository.AssertExpectations(t)
 		generator.AssertExpectations(t)
 	})
 
 	t.Run("Hash password failed", func(t *testing.T) {
+		repository.On("IsDuplicateEmail", newData.Email).Return(false).Once()
 		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
 		hash.On("HashPassword", newData.Password).Return("", errors.New("hash password failed")).Once()
 
@@ -77,12 +89,14 @@ func TestInsert(t *testing.T) {
 		assert.Error(t, err)
 		assert.EqualError(t, err, "hash password failed")
 		assert.Nil(t, result)
+		repository.AssertExpectations(t)
 		generator.AssertExpectations(t)
 		hash.AssertExpectations(t)
 	})
 
 	t.Run("Insert data failed", func(t *testing.T) {
 		newUser := helper.RequestToAdmin(newData)
+		repository.On("IsDuplicateEmail", newData.Email).Return(false).Once()
 		generator.On("GenerateUUID").Return("randomUUID", nil).Once()
 		hash.On("HashPassword", newUser.Password).Return("hashPassword", nil).Once()
 
@@ -94,9 +108,9 @@ func TestInsert(t *testing.T) {
 		assert.Error(t, err)
 		assert.EqualError(t, err, "cannot insert data")
 		assert.Nil(t, result)
+		repository.AssertExpectations(t)
 		generator.AssertExpectations(t)
 		hash.AssertExpectations(t)
-		repository.AssertExpectations(t)
 	})
 }
 
@@ -124,7 +138,7 @@ func TestLogin(t *testing.T) {
 		var jwtResult = map[string]any{"access_token": "randomAccessToken"}
 		repository.On("Login", loginData.Email).Return(&adminData, nil).Once()
 		hash.On("CompareHash", loginData.Password, adminData.Password).Return(true).Once()
-		jwt.On("GenerateJWT", mock.Anything).Return(jwtResult).Once()
+		jwt.On("GenerateJWT", adminData.ID, adminData.Name, adminData.Email).Return(jwtResult).Once()
 
 		result, err := service.Login(loginData.Email, loginData.Password)
 		assert.Nil(t, err)
@@ -136,22 +150,12 @@ func TestLogin(t *testing.T) {
 		jwt.AssertExpectations(t)
 	})
 
-	t.Run("user admin not found", func(t *testing.T) {
+	t.Run("login repository failed", func(t *testing.T) {
 		repository.On("Login", loginData.Email).Return(nil, errors.New("data admin not found")).Once()
 
 		result, err := service.Login(loginData.Email, loginData.Password)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "user admin not found")
-		assert.Nil(t, result)
-		repository.AssertExpectations(t)
-	})
-
-	t.Run("login process failed", func(t *testing.T) {
-		repository.On("Login", loginData.Email).Return(nil, errors.New("process error")).Once()
-
-		result, err := service.Login(loginData.Email, loginData.Password)
-		assert.Error(t, err)
-		assert.EqualError(t, err, "process failed")
+		assert.EqualError(t, err, "email or passowrd is wrong")
 		assert.Nil(t, result)
 		repository.AssertExpectations(t)
 	})
@@ -162,7 +166,7 @@ func TestLogin(t *testing.T) {
 
 		result, err := service.Login(loginData.Email, loginData.Password)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "wrong password")
+		assert.EqualError(t, err, "email or passowrd is wrong")
 		assert.Nil(t, result)
 		repository.AssertExpectations(t)
 		hash.AssertExpectations(t)
@@ -171,7 +175,7 @@ func TestLogin(t *testing.T) {
 	t.Run("get access token failed", func(t *testing.T) {
 		repository.On("Login", loginData.Email).Return(&adminData, nil).Once()
 		hash.On("CompareHash", loginData.Password, adminData.Password).Return(true).Once()
-		jwt.On("GenerateJWT", mock.Anything).Return(nil).Once()
+		jwt.On("GenerateJWT", adminData.ID, adminData.Name, adminData.Email).Return(nil).Once()
 
 		result, err := service.Login(loginData.Email, loginData.Password)
 		assert.Error(t, err)
@@ -192,76 +196,40 @@ func TestSetNoTable(t *testing.T) {
 	var service = NewAdminService(repository, jwt, generator, hash, validate)
 
 	var setTable = model.InputTable{
-		NoTable:  1,
-		Email:    "bagus@gmail.com",
-		Password: "bagus123",
+		TableNumber: 1,
 	}
 
-	var adminData = model.Admin{
-		ID:       "randomID",
-		Name:     "Bagus",
-		Email:    "bagus@gmail.com",
-		Password: "bagus123",
+	var invalidTable = model.InputTable{
+		TableNumber: 0,
 	}
+
+	adminName := "Bagus"
 
 	t.Run("success set no table", func(t *testing.T) {
 		var jwtResult = "randomAccessToken"
-		repository.On("Login", setTable.Email).Return(&adminData, nil).Once()
-		hash.On("CompareHash", setTable.Password, adminData.Password).Return(true).Once()
-		jwt.On("GenerateTableToken", setTable.NoTable, adminData.Name).Return(jwtResult).Once()
+		jwt.On("GenerateTableToken", setTable.TableNumber, adminName).Return(jwtResult).Once()
 
-		result, err := service.SetNoTable(setTable)
+		result, err := service.SetNoTable(adminName, setTable)
 		assert.Nil(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, jwtResult, result)
-		repository.AssertExpectations(t)
-		hash.AssertExpectations(t)
 		jwt.AssertExpectations(t)
 	})
 
-	t.Run("user admin not found", func(t *testing.T) {
-		repository.On("Login", setTable.Email).Return(nil, errors.New("data admin not found")).Once()
-
-		result, err := service.SetNoTable(setTable)
+	t.Run("validation failed", func(t *testing.T) {
+		result, err := service.SetNoTable(adminName, invalidTable)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "user admin not found")
+		assert.EqualError(t, err, "validation failed please check your input and try again")
 		assert.Empty(t, result)
-		repository.AssertExpectations(t)
-	})
-
-	t.Run("login process failed", func(t *testing.T) {
-		repository.On("Login", setTable.Email).Return(nil, errors.New("process error")).Once()
-
-		result, err := service.SetNoTable(setTable)
-		assert.Error(t, err)
-		assert.EqualError(t, err, "process failed")
-		assert.Empty(t, result)
-		repository.AssertExpectations(t)
-	})
-
-	t.Run("compare hash failed", func(t *testing.T) {
-		repository.On("Login", setTable.Email).Return(&adminData, nil).Once()
-		hash.On("CompareHash", setTable.Password, adminData.Password).Return(false).Once()
-
-		result, err := service.SetNoTable(setTable)
-		assert.Error(t, err)
-		assert.EqualError(t, err, "wrong password")
-		assert.Empty(t, result)
-		repository.AssertExpectations(t)
-		hash.AssertExpectations(t)
 	})
 
 	t.Run("get token failed", func(t *testing.T) {
-		repository.On("Login", setTable.Email).Return(&adminData, nil).Once()
-		hash.On("CompareHash", setTable.Password, adminData.Password).Return(true).Once()
-		jwt.On("GenerateTableToken", setTable.NoTable, adminData.Name).Return("").Once()
+		jwt.On("GenerateTableToken", setTable.TableNumber, adminName).Return("").Once()
 
-		result, err := service.SetNoTable(setTable)
+		result, err := service.SetNoTable(adminName, setTable)
 		assert.Error(t, err)
 		assert.EqualError(t, err, "get token process failed")
 		assert.Empty(t, result)
-		repository.AssertExpectations(t)
-		hash.AssertExpectations(t)
 		jwt.AssertExpectations(t)
 	})
 }

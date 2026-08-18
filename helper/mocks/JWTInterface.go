@@ -33,13 +33,13 @@ func (_m *JWTInterface) ExtractToken(tokenString string) (int, error) {
 	return r0, r1
 }
 
-// GenerateJWT provides a mock function with given fields: userID
-func (_m *JWTInterface) GenerateJWT(userID string) map[string]interface{} {
-	ret := _m.Called(userID)
+// GenerateJWT provides a mock function with given fields: userID, name, email
+func (_m *JWTInterface) GenerateJWT(userID string, name string, email string) map[string]interface{} {
+	ret := _m.Called(userID, name, email)
 
 	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(string) map[string]interface{}); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(string, string, string) map[string]interface{}); ok {
+		r0 = rf(userID, name, email)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]interface{})

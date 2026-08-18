@@ -5,7 +5,6 @@ import (
 	"restoran/features/admin/model"
 	"restoran/features/admin/repository"
 	"restoran/helper"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
@@ -14,7 +13,7 @@ import (
 type AdminServiceInterface interface {
 	Insert(newData model.AdminInput) (*model.AdminResponse, error)
 	Login(email string, password string) (*model.UserCredential, error)
-	SetNoTable(setTable model.InputTable) (string, error)
+	SetNoTable(adminName string, setTable model.InputTable) (string, error)
 }
 
 type adminService struct {
@@ -45,6 +44,10 @@ func (service *adminService) Insert(newData model.AdminInput) (*model.AdminRespo
 		return nil, errors.New("validation failed please check your input and try again")
 	}
 
+	if service.repository.IsDuplicateEmail(newData.Email) {
+		return nil, errors.New("email already used")
+	}
+
 	var newUser = helper.RequestToAdmin(newData)
 
 	newUser.ID, err = service.generate.GenerateUUID()
@@ -71,17 +74,14 @@ func (service *adminService) Insert(newData model.AdminInput) (*model.AdminRespo
 func (service *adminService) Login(email string, password string) (*model.UserCredential, error) {
 	result, err := service.repository.Login(email)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return nil, errors.New("user admin not found")
-		}
-		return nil, errors.New("process failed")
+		return nil, errors.New("email or passowrd is wrong")
 	}
 
 	if !service.hash.CompareHash(password, result.Password) {
-		return nil, errors.New("wrong password")
+		return nil, errors.New("email or passowrd is wrong")
 	}
 
-	token := service.jwt.GenerateJWT(result.ID)
+	token := service.jwt.GenerateJWT(result.ID, result.Name, result.Email)
 	if token == nil {
 		return nil, errors.New("get token process failed")
 	}
@@ -91,20 +91,19 @@ func (service *adminService) Login(email string, password string) (*model.UserCr
 	return response, nil
 }
 
-func (service *adminService) SetNoTable(setTable model.InputTable) (string, error) {
-	result, err := service.repository.Login(setTable.Email)
+func (service *adminService) SetNoTable(adminName string, setTable model.InputTable) (string, error) {
+	if setTable.TableNumber == 0 && setTable.NoTable != 0 {
+		setTable.TableNumber = setTable.NoTable
+	} else if setTable.NoTable == 0 && setTable.TableNumber != 0 {
+		setTable.NoTable = setTable.TableNumber
+	}
+
+	err := service.validator.Struct(setTable)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return "", errors.New("user admin not found")
-		}
-		return "", errors.New("process failed")
+		return "", errors.New("validation failed please check your input and try again")
 	}
 
-	if !service.hash.CompareHash(setTable.Password, result.Password) {
-		return "", errors.New("wrong password")
-	}
-
-	token := service.jwt.GenerateTableToken(setTable.NoTable, result.Name)
+	token := service.jwt.GenerateTableToken(setTable.TableNumber, adminName)
 	if token == "" {
 		return "", errors.New("get token process failed")
 	}

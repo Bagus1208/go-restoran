@@ -7,6 +7,7 @@ import (
 	"restoran/helper"
 	"strings"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -37,11 +38,13 @@ func (handler *adminHandler) Insert() echo.HandlerFunc {
 		if err != nil {
 			if strings.Contains(err.Error(), "validation failed") {
 				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
+			} else if strings.Contains(err.Error(), "email already used") {
+				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
 			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
 
-		return c.JSON(http.StatusOK, helper.FormatResponse("successfully insert data", result))
+		return c.JSON(http.StatusCreated, helper.FormatResponse("successfully insert data", result))
 	}
 }
 
@@ -56,6 +59,8 @@ func (handler *adminHandler) Login() echo.HandlerFunc {
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				return c.JSON(http.StatusNotFound, helper.FormatResponse(err.Error(), nil))
+			} else if strings.Contains(err.Error(), "email or passowrd is wrong") {
+				return c.JSON((http.StatusBadRequest), helper.FormatResponse(err.Error(), nil))
 			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}
@@ -71,10 +76,19 @@ func (handler *adminHandler) SetNoTable() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, helper.FormatResponse("error when parshing data", nil))
 		}
 
-		result, err := handler.service.SetNoTable(setTable)
+		var adminName string
+		if user, ok := c.Get("user").(*jwt.Token); ok {
+			if claims, ok := user.Claims.(jwt.MapClaims); ok {
+				if name, ok := claims["name"].(string); ok {
+					adminName = name
+				}
+			}
+		}
+
+		result, err := handler.service.SetNoTable(adminName, setTable)
 		if err != nil {
-			if strings.Contains(err.Error(), "not found") {
-				return c.JSON(http.StatusNotFound, helper.FormatResponse("user admin not found", nil))
+			if strings.Contains(err.Error(), "validation") {
+				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
 			}
 			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
 		}

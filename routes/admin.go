@@ -1,16 +1,16 @@
 package routes
 
 import (
-	"os"
+	"restoran/config"
 	"restoran/features/admin/handler"
 
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
-func RouteAdmin(e *echo.Echo, menuHandler handler.AdminHandlerInterface) {
+func RouteAdmin(e *echo.Echo, adminHandler handler.AdminHandlerInterface, config config.Config) {
 	admin := e.Group("/admins")
-	admin.POST("", menuHandler.Insert())
-	admin.POST("/login", menuHandler.Login())
-	admin.POST("/table", menuHandler.SetNoTable(), echojwt.JWT([]byte(os.Getenv("SECRET"))))
+	admin.POST("", adminHandler.Insert())
+	admin.POST("/login", adminHandler.Login())
+	admin.POST("/table", adminHandler.SetNoTable(), echojwt.JWT([]byte(config.Secret)))
 }

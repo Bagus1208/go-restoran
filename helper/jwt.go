@@ -12,7 +12,7 @@ import (
 )
 
 type JWTInterface interface {
-	GenerateJWT(userID string) map[string]any
+	GenerateJWT(userID string, name string, email string) map[string]any
 	GenerateTableToken(noTable int, adminName string) string
 	ExtractToken(tokenString string) (int, error)
 }
@@ -27,9 +27,9 @@ func NewJWT(signKey string) JWTInterface {
 	}
 }
 
-func (j *JWT) GenerateJWT(adminID string) map[string]any {
+func (j *JWT) GenerateJWT(adminID string, name string, email string) map[string]any {
 	var result = map[string]any{}
-	var accessToken = j.generateToken(adminID)
+	var accessToken = j.generateToken(adminID, name, email)
 	if accessToken == "" {
 		return nil
 	}
@@ -37,9 +37,11 @@ func (j *JWT) GenerateJWT(adminID string) map[string]any {
 	return result
 }
 
-func (j *JWT) generateToken(id string) string {
+func (j *JWT) generateToken(id string, name string, email string) string {
 	var claims = jwt.MapClaims{}
 	claims["id"] = id
+	claims["name"] = name
+	claims["email"] = email
 	claims["iat"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
 

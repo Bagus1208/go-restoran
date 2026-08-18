@@ -10,6 +10,7 @@ import (
 type AdminRepositoryInterface interface {
 	Insert(newData *model.Admin) (*model.Admin, error)
 	Login(email string) (*model.Admin, error)
+	IsDuplicateEmail(email string) bool
 }
 
 type adminRepo struct {
@@ -42,3 +43,16 @@ func (repository *adminRepo) Login(email string) (*model.Admin, error) {
 
 	return admin, nil
 }
+
+func (repository *adminRepo) IsDuplicateEmail(email string) bool {
+	var count int64
+	result := repository.db.Model(&model.Admin{}).Where("email = ?", email).Count(&count)
+	if result.Error != nil {
+		logrus.Error("Repository: IsDuplicateEmail error,", result.Error)
+		return true 
+	}
+
+	return count > 0
+}
+
+

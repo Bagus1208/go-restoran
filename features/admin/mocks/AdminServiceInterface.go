@@ -65,23 +65,23 @@ func (_m *AdminServiceInterface) Login(email string, password string) (*model.Us
 	return r0, r1
 }
 
-// SetNoTable provides a mock function with given fields: noTable, email, password
-func (_m *AdminServiceInterface) SetNoTable(noTable int, email string, password string) (string, error) {
-	ret := _m.Called(noTable, email, password)
+// SetNoTable provides a mock function with given fields: adminName, setTable
+func (_m *AdminServiceInterface) SetNoTable(adminName string, setTable model.InputTable) (string, error) {
+	ret := _m.Called(adminName, setTable)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string, string) (string, error)); ok {
-		return rf(noTable, email, password)
+	if rf, ok := ret.Get(0).(func(string, model.InputTable) (string, error)); ok {
+		return rf(adminName, setTable)
 	}
-	if rf, ok := ret.Get(0).(func(int, string, string) string); ok {
-		r0 = rf(noTable, email, password)
+	if rf, ok := ret.Get(0).(func(string, model.InputTable) string); ok {
+		r0 = rf(adminName, setTable)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string, string) error); ok {
-		r1 = rf(noTable, email, password)
+	if rf, ok := ret.Get(1).(func(string, model.InputTable) error); ok {
+		r1 = rf(adminName, setTable)
 	} else {
 		r1 = ret.Error(1)
 	}
