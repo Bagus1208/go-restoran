@@ -9,10 +9,11 @@ services:
     ports:
       - "3306:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-prootpassword"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+      start_period: 10s
 
   app:
     build:
@@ -31,9 +32,9 @@ services:
       DBPASS: testpassword
       SECRET: test-jwt-secret
       SERVER: 8000
-      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-      CLOUDINARY_UPLOAD_FOLDER_NAME: ${CLOUDINARY_UPLOAD_FOLDER_NAME}
-      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      CLOUDINARY_UPLOAD_FOLDER_NAME: ${CLOUDINARY_UPLOAD_FOLDER_NAME:-}
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}

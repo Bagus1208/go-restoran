@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"restoran/config"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
@@ -17,11 +18,19 @@ func InitDB(config config.Config) *gorm.DB {
 		config.DB_Port,
 		config.DB_Name)
 
-	DB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		logrus.Error("Model : cannot connect to database, ", err.Error())
-		return nil
+	var DB *gorm.DB
+	var err error
+
+	for i := 0; i < 15; i++ {
+		DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err == nil {
+			logrus.Info("Database connected successfully")
+			return DB
+		}
+		logrus.Warnf("Cannot connect to database (attempt %d/15): %v. Retrying in 2s...", i+1, err)
+		time.Sleep(2 * time.Second)
 	}
 
-	return DB
+	logrus.Fatalf("Model : cannot connect to database after retries, %v", err)
+	return nil
 }
