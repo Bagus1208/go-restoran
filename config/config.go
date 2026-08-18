@@ -40,8 +40,7 @@ func loadConfig() *Config {
 
 	err := godotenv.Load(".env")
 	if err != nil {
-		logrus.Error("Config: Cannot load config file,", err.Error())
-		return nil
+		logrus.Warn("Config: .env file not found, loading from environment variables")
 	}
 
 	if value, found := os.LookupEnv("SERVER"); found {

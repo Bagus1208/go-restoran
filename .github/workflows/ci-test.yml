@@ -21,14 +21,19 @@ jobs:
       - name: Wait for app to be ready
         run: |
           for i in {1..30}; do
-            curl -sf http://localhost:8000/menus && break
+            if curl -sf http://localhost:8000/health; then
+              echo "App is ready!"
+              exit 0
+            fi
             echo "Waiting for app... ($i)"
             sleep 2
           done
+          echo "App failed to start within timeout!"
+          exit 1
 
       - name: Show app logs if failed to start
         if: failure()
-        run: docker compose -f docker-compose.test.yml logs app
+        run: docker compose -f docker-compose.test.yml logs
 
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
@@ -39,9 +44,7 @@ jobs:
       - name: Run API tests
         run: |
           postman collection run "29059809-7fb243d7-43e7-4751-8ba5-b14a7cdff34c" \
-            -e "29059809-30bdacea-ae83-4817-aea3-890d09e64954" \
-            --env-var "host=http://localhost:8000" \
-            --insecure-file-read
+            -e "29059809-30bdacea-ae83-4817-aea3-890d09e64954"
 
       - name: Stop containers
         if: always()
