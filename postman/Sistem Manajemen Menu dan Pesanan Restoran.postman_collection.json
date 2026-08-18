@@ -1,0 +1,2531 @@
+{
+  "info": {
+    "_postman_id": "7fb243d7-43e7-4751-8ba5-b14a7cdff34c",
+    "name": "Sistem Manajemen Menu dan Pesanan Restoran v2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "29059809"
+  },
+  "item": [
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Register",
+          "item": [
+            {
+              "name": "register - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Success register user\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully insert data\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data.id).to.exist;",
+                      "    pm.expect(responseBody.data.name).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody.data.email).to.include(\"@\");",
+                      "});",
+                      "",
+                      "pm.test(\"Response time is less than 500ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n\"name\": \"Bagus Ario Yudanto\",\r\n\"email\": \"kimpul@gmail.com\",\r\n\"password\": \"bagus123\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins"
+                  ]
+                },
+                "description": "Membuat user admin baru"
+              },
+              "response": []
+            },
+            {
+              "name": "register - duplicate email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message duplicate email\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody.message.toLowerCase()).to.satisfy(msg => msg.includes(\"already\") || msg.includes(\"exists\") || msg.includes(\"duplicate\"));",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n\"name\": \"Bagus Ario Yudanto\",\r\n\"email\": \"mali@gmail.com\",\r\n\"password\": \"bagus123\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "register - missing required field",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message missing field\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody.message.toLowerCase()).to.include(\"validation\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n\"name\": \"\",\r\n\"email\": \"\",\r\n\"password\": \"\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "item": [
+            {
+              "name": "login - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success login and save JWT token\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message).to.equal(\"successfully login\");",
+                      "    pm.expect(jsonData.data).to.exist;",
+                      "    ",
+                      "    let token = null;",
+                      "    if (jsonData.data.access && jsonData.data.access.access_token) {",
+                      "        token = jsonData.data.access.access_token;",
+                      "    } else if (jsonData.data.token) {",
+                      "        token = jsonData.data.token;",
+                      "    } else if (typeof jsonData.data === \"string\") {",
+                      "        token = jsonData.data;",
+                      "    }",
+                      "    ",
+                      "    pm.expect(token).to.be.a(\"string\").and.not.empty;",
+                      "    pm.environment.set(\"access_token\", token);",
+                      "});",
+                      "",
+                      "pm.test(\"Response time is less than 500ms\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n\"email\": \"mali@gmail.com\",\r\n\"password\": \"bagus123\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins/login",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "login - email or password is wrong",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message wrong credentials\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n\"email\": \"wrongemail@gmail.com\",\r\n\"password\": \"wrongpass\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins/login",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Set Table Number",
+          "item": [
+            {
+              "name": "set table number - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "const jsonData = pm.response.json();",
+                      "pm.environment.set(\"table_number_token\", jsonData.data);",
+                      "",
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get table number and save token\", function () {",
+                      "    ",
+                      "    pm.expect(jsonData.message).to.equal(\"successfully get token table\");",
+                      "    pm.expect(jsonData.data).to.be.a(\"string\").and.not.empty;",
+                      "    pm.environment.set(\"table_number_token\", jsonData.data);",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"table_number\": 5\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins/table",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins",
+                    "table"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "set table number - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"table_number\": 5\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins/table",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins",
+                    "table"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "set table number - validation failed",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message invalid table number\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"table_number\": 0\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/admins/table",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "admins",
+                    "table"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "item": [
+        {
+          "name": "Insert Menu",
+          "item": [
+            {
+              "name": "insert menu - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Success insert menu and extract menu_id\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully insert data\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data.id).to.exist;",
+                      "    pm.expect(responseBody.data.name).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody.data.price).to.be.a(\"number\").and.above(0);",
+                      "    pm.expect(responseBody.data.image).to.be.a(\"string\").and.not.empty;",
+                      "    ",
+                      "    pm.environment.set(\"menu_id\", responseBody.data.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Nasi Goreng Spesial",
+                      "type": "text"
+                    },
+                    {
+                      "key": "category",
+                      "value": "makanan",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Nasi goreng lezat dengan bumbu rempah spesial",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "25000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "src": "postman-cloud:///1f19ae8a-95c8-48a0-ba7a-a33bcb75ad46"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "insert menu - duplicate menu",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400 Bad Request\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message duplicate menu\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody.message.toLowerCase()).to.include(\"already exists\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Nasi Goreng Spesial",
+                      "type": "text"
+                    },
+                    {
+                      "key": "category",
+                      "value": "makanan",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Duplikat menu",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "25000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "src": "postman-cloud:///1f19ae8a-95c8-48a0-ba7a-a33bcb75ad46"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "insert menu - missing image",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 422 Unprocessable Entity\", function () {",
+                      "    pm.response.to.have.status(422);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message image not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"image not found\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Es Kelapa Muda",
+                      "type": "text"
+                    },
+                    {
+                      "key": "category",
+                      "value": "minuman",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Segar",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "10000",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "insert menu - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Es Teh Manis",
+                      "type": "text"
+                    },
+                    {
+                      "key": "category",
+                      "value": "minuman",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "5000",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get Menu",
+          "item": [
+            {
+              "name": "get menu - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get all menu with pagination\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message).to.equal(\"successfully get all menu\");",
+                      "    pm.expect(jsonData.data).to.be.an(\"array\");",
+                      "    pm.expect(jsonData).to.have.property(\"pagination\");",
+                      "    pm.expect(jsonData.pagination).to.be.an(\"object\");",
+                      "    pm.expect(jsonData.pagination.page).to.be.a(\"number\");",
+                      "    pm.expect(jsonData.pagination.page_size).to.be.a(\"number\");",
+                      "    pm.expect(jsonData.pagination.total_items).to.be.a(\"number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/menus?page=1&page_size=10",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "page_size",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get menu - success get menu by category",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get menu by category\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const category = pm.request.url.query.get(\"category\");",
+                      "    pm.expect(jsonData.message).to.include(\"successfully get menu by category\");",
+                      "    pm.expect(jsonData.data).to.be.an(\"array\");",
+                      "    if (jsonData.data.length > 0 && category) {",
+                      "        jsonData.data.forEach(function(item) {",
+                      "            pm.expect(item.category.toLowerCase()).to.equal(category.toLowerCase());",
+                      "        });",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/menus?category=Makanan",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "Makanan"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get menu - success get menu by name",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get menu by name\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    const name = pm.request.url.query.get(\"name\");",
+                      "    pm.expect(jsonData.message).to.include(\"successfully get menu\");",
+                      "    pm.expect(jsonData.data).to.be.an(\"object\");",
+                      "    if (name) {",
+                      "        pm.expect(jsonData.data.name.toLowerCase()).to.include(name.toLowerCase());",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/menus?name=Bakso",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus"
+                  ],
+                  "query": [
+                    {
+                      "key": "name",
+                      "value": "Bakso"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get menu favorite",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get favorite menus\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message).to.equal(\"successfully get favorite menu\");",
+                      "    pm.expect(jsonData.data).to.be.an(\"array\");",
+                      "    if (jsonData.data.length > 0) {",
+                      "        const item = jsonData.data[0];",
+                      "        pm.expect(item).to.have.property(\"menu_name\");",
+                      "        pm.expect(item).to.have.property(\"total_order\");",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/menus/favorites",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "favorites"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Update Menu",
+          "item": [
+            {
+              "name": "update menu - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success update menu data\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully update data\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"id\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"name\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"price\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Pancake Strawberry",
+                      "type": "text"
+                    },
+                    {
+                      "key": "category",
+                      "value": "hidangan penutup",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "25000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Pancake lembut dengan topping sirup maple dan strawberry",
+                      "type": "text"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "src": "postman-cloud:///1f19ae8b-e254-4600-b8dd-de7776733bcc"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus/{{menu_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "{{menu_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "",
+                      "value": null,
+                      "type": "text",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update menu - not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 500 or 404\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message record not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "    pm.expect(responseBody.message.toLowerCase()).to.satisfy(msg => msg.includes(\"not found\") || msg.includes(\"record\"));",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Pancake Strawberry",
+                      "type": "text"
+                    },
+                    {
+                      "key": "category",
+                      "value": "hidangan penutup",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "25000",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Update non-existent menu",
+                      "type": "text"
+                    },
+                    {
+                      "key": "image",
+                      "type": "file",
+                      "src": "postman-cloud:///1f19ae8b-e254-4600-b8dd-de7776733bcc"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus/5000",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "5000"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update menu - missing image",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 422 Unprocessable Entity\", function () {",
+                      "    pm.response.to.have.status(422);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message image not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"image not found\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Pancake Tanpa Foto",
+                      "type": "text"
+                    },
+                    {
+                      "key": "category",
+                      "value": "hidangan penutup",
+                      "type": "text"
+                    },
+                    {
+                      "key": "price",
+                      "value": "25000",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus/{{menu_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "{{menu_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "update menu - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "Pancake",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/menus/{{menu_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "{{menu_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Delete Menu",
+          "item": [
+            {
+              "name": "delete menu - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success delete menu data\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully delete data\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/menus/{{menu_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "{{menu_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete menu - not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404 or 500\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message no rows affected or not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/menus/999999",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "999999"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete menu - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/menus/{{menu_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "menus",
+                    "{{menu_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "item": [
+        {
+          "name": "Make Order",
+          "item": [
+            {
+              "name": "make order - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Success make an order and extract order_id\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully make an order\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data.id).to.exist;",
+                      "    pm.expect(responseBody.data.table_number).to.exist;",
+                      "    pm.expect(responseBody.data.total).to.be.a(\"number\").and.above(0);",
+                      "    ",
+                      "    pm.environment.set(\"order_id\", responseBody.data.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{table_number_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"orders\": [\r\n        {\r\n            \"menu_id\": 1,\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/orders",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "make order - success (for transaction cash)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Success make an order and extract order_id\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully make an order\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data.id).to.exist;",
+                      "    pm.expect(responseBody.data.table_number).to.exist;",
+                      "    pm.expect(responseBody.data.total).to.be.a(\"number\").and.above(0);",
+                      "    ",
+                      "    pm.environment.set(\"order_id_cash\", responseBody.data.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{table_number_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"orders\": [\r\n        {\r\n            \"menu_id\": 1,\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/orders",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "make order - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message token not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"token not found\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"orders\": [\r\n        {\r\n            \"menu_name\": \"Nasi Goreng Spesial\",\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/orders",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "make order - menu not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 500 Internal Server Error\", function () {",
+                      "    pm.response.to.have.status(500);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message menu not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.include(\"menu not found\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{table_number_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"orders\": [\r\n        {\r\n            \"menu_id\": 99999,\r\n            \"quantity\": 2\r\n        }\r\n    ]\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}/orders",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get All Orders",
+          "item": [
+            {
+              "name": "get all orders - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get all orders\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully get all orders\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"array\");",
+                      "    if (responseBody.data.length > 0) {",
+                      "        const order = responseBody.data[0];",
+                      "        pm.expect(order).to.have.property(\"id\");",
+                      "        pm.expect(order).to.have.property(\"table_number\");",
+                      "        pm.expect(order).to.have.property(\"total\");",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders?page=1&page_size=10",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "page_size",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get all orders - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get Order By ID",
+          "item": [
+            {
+              "name": "get order by id - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get order by ID\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully get order by id\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"id\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"table_number\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"orders\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders/{{order_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{order_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get order by id - not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 500 or 404\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message record not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.include(\"get data order by id failed\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders/999999",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "999999"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get order by id - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders/{{order_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{order_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Delete Order",
+          "item": [
+            {
+              "name": "delete order - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success delete order\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully deleted data\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders/{{order_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{order_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete order - not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404 Not Found\", function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message data not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.include(\"data not found\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders/999999",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "999999"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "delete order - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/orders/{{order_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{order_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Transaction",
+      "item": [
+        {
+          "name": "Make Transaction",
+          "item": [
+            {
+              "name": "make transaction - success with payment gateway",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Success make transaction with snap token\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully create transaction\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    if (responseBody.data.id) {",
+                      "        pm.environment.set(\"transaction_id\", responseBody.data.id);",
+                      "    }",
+                      "    if (responseBody.data.token) {",
+                      "        pm.expect(responseBody.data.token).to.be.a(\"string\").and.not.empty;",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "order_id",
+                      "value": "{{order_id}}",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/transactions",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "make transaction - success without payment gateway (cash)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Success make manual cash transaction\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully create transaction\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data.payment_method).to.equal(\"cash\");",
+                      "    if (responseBody.data.id) {",
+                      "        pm.environment.set(\"transaction_id\", responseBody.data.id);",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "order_id",
+                      "value": "{{order_id_cash}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "payment_method",
+                      "value": "cash",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/transactions",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "make transaction - invalid order_id / not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 500 or 400\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message invalid order\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "order_id",
+                      "value": "999999",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/transactions",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "make transaction - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "order_id",
+                      "value": "{{order_id}}",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{host}}/transactions",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get All Transactions",
+          "item": [
+            {
+              "name": "get all transactions - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get all transactions\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully get all transaction\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"array\");",
+                      "    if (responseBody.data.length > 0) {",
+                      "        const trx = responseBody.data[0];",
+                      "        pm.expect(trx).to.have.property(\"id\");",
+                      "        pm.expect(trx).to.have.property(\"order_id\");",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/transactions?page=1&page_size=10",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "page_size",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get all transactions - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/transactions",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get Transaction By ID",
+          "item": [
+            {
+              "name": "get transaction by id - success",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200 OK\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Success get transaction by ID\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.equal(\"successfully get transaction by id\");",
+                      "    pm.expect(responseBody.data).to.be.an(\"object\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"id\");",
+                      "    pm.expect(responseBody.data).to.have.property(\"order_id\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/transactions/{{transaction_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions",
+                    "{{transaction_id}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get transaction by id - not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 500 or 404\", function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([404, 500]);",
+                      "});",
+                      "",
+                      "pm.test(\"Get error message not found\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/transactions/999999",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions",
+                    "999999"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "get transaction by id - unauthorized",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Get unauthorized message\", function () {",
+                      "    const responseBody = pm.response.json();",
+                      "    pm.expect(responseBody.message).to.be.a(\"string\").and.not.empty;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{host}}/transactions/{{transaction_id}}",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "path": [
+                    "transactions",
+                    "{{transaction_id}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "host",
+      "value": "http://localhost:8000"
+    }
+  ]
+}
