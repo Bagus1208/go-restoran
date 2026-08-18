@@ -81,6 +81,32 @@ func (_m *MenuRepositoryInterface) GetAllMenuName() ([]string, error) {
 	return r0, r1
 }
 
+// GetByID provides a mock function with given fields: id
+func (_m *MenuRepositoryInterface) GetByID(id int) (*model.Menu, error) {
+	ret := _m.Called(id)
+
+	var r0 *model.Menu
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) (*model.Menu, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(int) *model.Menu); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Menu)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByName provides a mock function with given fields: name
 func (_m *MenuRepositoryInterface) GetByName(name string) *model.Menu {
 	ret := _m.Called(name)

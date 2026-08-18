@@ -311,6 +311,42 @@ func TestGetByName(t *testing.T) {
 	})
 }
 
+func TestGetByID(t *testing.T) {
+	var repository = mocks.NewMenuRepositoryInterface(t)
+	var validate = validator.New()
+	var service = NewMenuService(repository, validate)
+
+	var menu = model.Menu{
+		ID:          1,
+		Name:        "Martabak",
+		Category:    "Makanan",
+		Price:       25000,
+		Description: "Makanan manis yang nikmat",
+		Image:       "www.cloudinary.com/images/martabak",
+	}
+
+	t.Run("Success get by id", func(t *testing.T) {
+		repository.On("GetByID", 1).Return(&menu, nil).Once()
+
+		result, err := service.GetByID(1)
+		assert.Nil(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, menu.Name, result.Name)
+		assert.Equal(t, menu.Price, result.Price)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Get by id failed", func(t *testing.T) {
+		repository.On("GetByID", 1).Return(nil, errors.New("get data error")).Once()
+
+		result, err := service.GetByID(1)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "cannot get menu by id")
+		assert.Nil(t, result)
+		repository.AssertExpectations(t)
+	})
+}
+
 func TestUpdate(t *testing.T) {
 	var repository = mocks.NewMenuRepositoryInterface(t)
 	var validate = validator.New()
@@ -342,6 +378,8 @@ func TestUpdate(t *testing.T) {
 	t.Run("Success update data", func(t *testing.T) {
 		var updateMenu = helper.RequestToMenu(updateData)
 
+		repository.On("GetByID", 1).Return(&menu, nil).Once()
+		repository.On("GetByName", updateData.Name).Return(&menu).Once()
 		repository.On("UploadImage", fileHeader, updateData.Name).Return(menu.Image, nil).Once()
 		repository.On("Update", 1, updateMenu).Return(&menu, nil).Once()
 
@@ -360,7 +398,34 @@ func TestUpdate(t *testing.T) {
 		repository.AssertExpectations(t)
 	})
 
+	t.Run("Menu not found", func(t *testing.T) {
+		repository.On("GetByID", 1).Return(nil, errors.New("menu not found")).Once()
+
+		result, err := service.Update(1, fileHeader, updateData)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "menu not found")
+		assert.Nil(t, result)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Menu already exists", func(t *testing.T) {
+		var otherMenu = model.Menu{
+			ID:   2,
+			Name: "Martabak",
+		}
+		repository.On("GetByID", 1).Return(&menu, nil).Once()
+		repository.On("GetByName", updateData.Name).Return(&otherMenu).Once()
+
+		result, err := service.Update(1, fileHeader, updateData)
+		assert.Error(t, err)
+		assert.EqualError(t, err, "menu already exists")
+		assert.Nil(t, result)
+		repository.AssertExpectations(t)
+	})
+
 	t.Run("Upload image failed", func(t *testing.T) {
+		repository.On("GetByID", 1).Return(&menu, nil).Once()
+		repository.On("GetByName", updateData.Name).Return(nil).Once()
 		repository.On("UploadImage", fileHeader, updateData.Name).Return("", errors.New("upload image error")).Once()
 
 		result, err := service.Update(1, fileHeader, updateData)
@@ -373,6 +438,8 @@ func TestUpdate(t *testing.T) {
 	t.Run("Update data failed", func(t *testing.T) {
 		var updateMenu = helper.RequestToMenu(updateData)
 
+		repository.On("GetByID", 1).Return(&menu, nil).Once()
+		repository.On("GetByName", updateData.Name).Return(nil).Once()
 		repository.On("UploadImage", fileHeader, updateData.Name).Return(menu.Image, nil).Once()
 		repository.On("Update", 1, updateMenu).Return(nil, errors.New("update data error")).Once()
 

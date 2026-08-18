@@ -23,6 +23,7 @@ type MenuRepositoryInterface interface {
 	GetCategory(queryParam model.QueryParam) ([]model.Menu, error)
 	GetFavorite() ([]model.Favorite, error)
 	GetByName(name string) *model.Menu
+	GetByID(id int) (*model.Menu, error)
 	GetAllMenuName() ([]string, error)
 	Update(id int, updateData *model.Menu) (*model.Menu, error)
 	Delete(id int) error
@@ -96,6 +97,17 @@ func (repository *menuRepo) GetByName(name string) *model.Menu {
 	}
 
 	return &menu
+}
+
+func (repository *menuRepo) GetByID(id int) (*model.Menu, error) {
+	var menu model.Menu
+	result := repository.db.Where("id = ?", id).First(&menu)
+	if result.Error != nil {
+		logrus.Error("Repository: Get menu by id error,", result.Error)
+		return nil, result.Error
+	}
+
+	return &menu, nil
 }
 
 func (repository *menuRepo) GetFavorite() ([]model.Favorite, error) {

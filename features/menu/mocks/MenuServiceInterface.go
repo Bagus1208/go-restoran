@@ -64,6 +64,32 @@ func (_m *MenuServiceInterface) GetAll(pagination model.QueryParam) ([]model.Men
 	return r0, r1, r2
 }
 
+// GetByID provides a mock function with given fields: id
+func (_m *MenuServiceInterface) GetByID(id int) (*model.MenuResponse, error) {
+	ret := _m.Called(id)
+
+	var r0 *model.MenuResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int) (*model.MenuResponse, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(int) *model.MenuResponse); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.MenuResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByName provides a mock function with given fields: name
 func (_m *MenuServiceInterface) GetByName(name string) (*model.MenuResponse, error) {
 	ret := _m.Called(name)

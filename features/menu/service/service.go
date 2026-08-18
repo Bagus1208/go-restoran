@@ -17,6 +17,7 @@ type MenuServiceInterface interface {
 	GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, *model.Pagination, error)
 	GetFavorite() ([]model.Favorite, error)
 	GetByName(name string) (*model.MenuResponse, error)
+	GetByID(id int) (*model.MenuResponse, error)
 	Update(id int, fileHeader *multipart.FileHeader, updateData model.MenuInput) (*model.MenuResponse, error)
 	Delete(id int) error
 	RecommendationMenu(request model.RecommendationRequest) (string, error)
@@ -85,6 +86,18 @@ func (service *menuService) GetAll(pagination model.QueryParam) ([]model.MenuRes
 	return menuResponse, paginationResponse, nil
 }
 
+func (service *menuService) GetByID(id int) (*model.MenuResponse, error) {
+	result, err := service.repository.GetByID(id)
+	if err != nil {
+		logrus.Error("Service: Get menu by id failed,", err)
+		return nil, errors.New("cannot get menu by id")
+	}
+
+	var menuResponse = helper.MenuToResponse(result)
+
+	return &menuResponse, nil
+}
+
 func (service *menuService) GetCategory(queryParam model.QueryParam) ([]model.MenuResponse, *model.Pagination, error) {
 	result, err := service.repository.GetCategory(queryParam)
 	if err != nil {
@@ -132,6 +145,17 @@ func (service *menuService) Update(id int, fileHeader *multipart.FileHeader, upd
 	err := service.validator.Struct(updateData)
 	if err != nil {
 		return nil, errors.New("validation failed please check your input and try again")
+	}
+
+	_, err = service.repository.GetByID(id)
+	if err != nil {
+		logrus.Error("Service: Get menu by id failed,", err)
+		return nil, errors.New("menu not found")
+	}
+
+	menuExist := service.repository.GetByName(updateData.Name)
+	if menuExist != nil && menuExist.ID != uint(id) {
+		return nil, errors.New("menu already exists")
 	}
 
 	urlImage, err := service.repository.UploadImage(fileHeader, updateData.Name)

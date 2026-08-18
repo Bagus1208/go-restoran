@@ -10,6 +10,7 @@ import (
 
 func RouteMenu(e *echo.Echo, menuHandler handler.MenuHandlerInterface, config config.Config) {
 	e.GET("/menus", menuHandler.GetData())
+	e.GET("/menus/:id", menuHandler.GetByID())
 	e.GET("/menus/favorites", menuHandler.GetFavorite())
 	e.POST("/menus/recommendations", menuHandler.RecommendationMenu())
 

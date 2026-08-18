@@ -14,6 +14,7 @@ import (
 type MenuHandlerInterface interface {
 	Insert() echo.HandlerFunc
 	GetData() echo.HandlerFunc
+	GetByID() echo.HandlerFunc
 	GetFavorite() echo.HandlerFunc
 	Update() echo.HandlerFunc
 	Delete() echo.HandlerFunc
@@ -45,6 +46,8 @@ func (handler *menuHandler) Insert() echo.HandlerFunc {
 		result, err := handler.service.Insert(fileHeader, menuInsert)
 		if err != nil {
 			if strings.Contains(err.Error(), "validation failed") {
+				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
+			} else if strings.Contains(err.Error(), "menu already exists") {
 				return c.JSON(http.StatusBadRequest, helper.FormatResponse(err.Error(), nil))
 			}
 
@@ -96,6 +99,22 @@ func (handler *menuHandler) GetData() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, helper.FormatPaginationResponse(message, result, paginationResponse))
+	}
+}
+
+func (handler *menuHandler) GetByID() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, helper.FormatResponse("id is required", nil))
+		}
+
+		result, err := handler.service.GetByID(id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, helper.FormatResponse(err.Error(), nil))
+		}
+
+		return c.JSON(http.StatusOK, helper.FormatResponse("successfully get menu by id", result))
 	}
 }
 

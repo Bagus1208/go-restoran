@@ -29,6 +29,22 @@ func (_m *MenuHandlerInterface) Delete() echo.HandlerFunc {
 	return r0
 }
 
+// GetByID provides a mock function with given fields:
+func (_m *MenuHandlerInterface) GetByID() echo.HandlerFunc {
+	ret := _m.Called()
+
+	var r0 echo.HandlerFunc
+	if rf, ok := ret.Get(0).(func() echo.HandlerFunc); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(echo.HandlerFunc)
+		}
+	}
+
+	return r0
+}
+
 // GetData provides a mock function with given fields:
 func (_m *MenuHandlerInterface) GetData() echo.HandlerFunc {
 	ret := _m.Called()
